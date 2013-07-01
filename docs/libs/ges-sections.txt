@@ -450,7 +450,7 @@ ges_clip_get_type
 
 
 <SECTION>
-<FILE>ges-timeline-pipeline</FILE>
+<FILE>ges-pipeline</FILE>
 <TITLE>GESPipeline</TITLE>
 GESPipeline
 ges_pipeline_new

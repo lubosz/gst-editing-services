@@ -19,7 +19,7 @@
  */
 
 /**
- * SECTION:ges-timeline-pipeline
+ * SECTION:ges-pipeline
  * @short_description: Convenience GstPipeline for editing.
  *
  * #GESPipeline allows developers to view and render #GESTimeline
@@ -32,7 +32,7 @@
 #include <stdio.h>
 
 #include "ges-internal.h"
-#include "ges-timeline-pipeline.h"
+#include "ges-pipeline.h"
 #include "ges-screenshot.h"
 
 #define DEFAULT_TIMELINE_MODE  TIMELINE_MODE_PREVIEW
