@@ -24,14 +24,18 @@
 /* *INDENT-OFF* */
 static const char * const profile_specs[][3] = {
   { "application/ogg", "audio/x-vorbis", "video/x-theora" },
-  { "video/webm", "audio/x-vorbis", "video/x-vp8"},
+  { "video/webm", "audio/x-vorbis", "video/x-vp8" },
+  { "video/quicktime", "audio/x-aac", "video/x-h264" },
+  { "video/x-matroska", "audio/x-vorbis", "video/x-h264" },
 };
 /* *INDENT-ON* */
 
 typedef enum
 {
   PROFILE_OGG,
+  PROFILE_WEBM,
   PROFILE_MP4,
+  PROFILE_MKV,
 } PROFILE_TYPE;
 
 typedef struct _PresetInfos
@@ -50,6 +54,8 @@ static GESTimelinePipeline *pipeline = NULL;
 /* This allow us to run the tests multiple times with different input files */
 static gchar *testfilename1 = NULL;
 static gchar *testfilename2 = NULL;
+
+static PROFILE_TYPE current_profile = PROFILE_OGG;
 
 #define DEFAULT_PROFILE_TYPE PROFILE_MP4
 #define ACCEPTABILITY 0.1 * GST_SECOND
@@ -284,7 +290,8 @@ GST_START_TEST (test_effect_rendering)
    * time     0--------1
    */
 
-  fail_unless (test_rendering_timeline_with_profile (timeline, PROFILE_OGG));
+  fail_unless (test_rendering_timeline_with_profile (timeline,
+          current_profile));
   fail_unless (check_rendered_file_properties (1 * GST_SECOND));
 }
 
@@ -332,7 +339,8 @@ GST_START_TEST (test_transition)
    * time     0------- 2 1--------3
    */
 
-  fail_unless (test_rendering_timeline_with_profile (timeline, PROFILE_OGG));
+  fail_unless (test_rendering_timeline_with_profile (timeline,
+          current_profile));
 
   fail_unless (check_rendered_file_properties (3 * GST_SECOND));
 }
@@ -367,7 +375,8 @@ GST_START_TEST (test_basic_render)
    * time     0--------1
    */
 
-  fail_unless (test_rendering_timeline_with_profile (timeline, PROFILE_OGG));
+  fail_unless (test_rendering_timeline_with_profile (timeline,
+          current_profile));
 
   fail_unless (check_rendered_file_properties (1 * GST_SECOND));
 }
@@ -404,6 +413,26 @@ generate_all_files (void)
       "oggmux", "18", "11");
   ges_generate_test_file_audio_video ("ges/test2.ogv", "vorbisenc", "theoraenc",
       "oggmux", "0", "0");
+  ges_generate_test_file_audio_video ("ges/test1.mp4", "faac", "x264enc",
+      "qtmux", "18", "11");
+  ges_generate_test_file_audio_video ("ges/test2.mp4", "faac", "x264enc",
+      "qtmux", "0", "0");
+}
+
+static void
+run_suite_with_profile (SRunner * sr, const char *file1, const char *file2,
+    PROFILE_TYPE profile_type)
+{
+  g_print ("Encoding (%s %s) => (%s %s %s)\n",
+      file1, file2,
+      profile_specs[profile_type][0],
+      profile_specs[profile_type][1], profile_specs[profile_type][2]);
+  current_profile = profile_type;
+  testfilename1 = g_strdup (file1);
+  testfilename2 = g_strdup (file2);
+  srunner_run_all (sr, CK_NORMAL);
+  g_free (testfilename1);
+  g_free (testfilename2);
 }
 
 int
@@ -422,19 +451,12 @@ main (int argc, char **argv)
 
   generate_all_files ();
 
-  g_print ("Running suite with webm vorbis/vp8\n");
-  testfilename1 = g_strdup ("test1.webm");
-  testfilename2 = g_strdup ("test2.webm");
-  srunner_run_all (sr, CK_NORMAL);
-  g_free (testfilename1);
-  g_free (testfilename2);
-
-  g_print ("Running suite with ogg vorbis/theora\n");
-  testfilename1 = g_strdup ("test1.ogv");
-  testfilename2 = g_strdup ("test2.ogv");
-  srunner_run_all (sr, CK_NORMAL);
-  g_free (testfilename1);
-  g_free (testfilename2);
+  run_suite_with_profile (sr, "test1.webm", "test2.webm", PROFILE_OGG);
+  run_suite_with_profile (sr, "test1.mp4", "test2.mp4", PROFILE_OGG);
+  run_suite_with_profile (sr, "test1.ogv", "test2.ogv", PROFILE_OGG);
+  run_suite_with_profile (sr, "test1.ogv", "test2.ogv", PROFILE_WEBM);
+  run_suite_with_profile (sr, "test1.ogv", "test2.ogv", PROFILE_MKV);
+  run_suite_with_profile (sr, "test1.ogv", "test2.ogv", PROFILE_MP4);
 
   nf = srunner_ntests_failed (sr);
   srunner_free (sr);
