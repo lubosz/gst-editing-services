@@ -58,6 +58,8 @@ AC_CONFIG_MACRO_DIR([m4])
 
 dnl *** check for arguments to configure ***
 
+AG_GST_ARG_DISABLE_FATAL_WARNINGS
+
 AG_GST_ARG_DEBUG
 AG_GST_ARG_PROFILING
 AG_GST_ARG_VALGRIND
@@ -279,7 +281,7 @@ dnl set location of plugin directory
 AG_GST_SET_PLUGINDIR
 
 dnl define an ERROR_CFLAGS Makefile variable
-AG_GST_SET_ERROR_CFLAGS($GST_GIT, [-Wmissing-declarations -Wmissing-prototypes -Wredundant-decls -Wundef \
+AG_GST_SET_ERROR_CFLAGS($FATAL_WARNINGS, [-Wmissing-declarations -Wmissing-prototypes -Wredundant-decls -Wundef \
 				   -Wwrite-strings -Wformat-nonliteral -Wformat-security -Wold-style-definition \
 				   -Winit-self -Wmissing-include-dirs -Waddress -Waggregate-return -Wno-multichar \
 				   -Wnested-externs])
