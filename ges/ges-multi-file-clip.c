@@ -149,13 +149,17 @@ ges_multi_file_clip_init (GESMultiFileClip * self)
 void
 ges_multi_file_clip_set_location (GESMultiFileClip * self, gchar * location)
 {
-  //GList *tmp;
-
-  //GST_DEBUG ("self:%p, mute:%d", self, mute);
+  GList *tmp;
 
   self->priv->location = location;
 
-  /* Go over tracked objects, and update 'active' status on all audio objects */
+  for (tmp = GES_CONTAINER_CHILDREN (self); tmp; tmp = tmp->next) {
+    GESTrackElement *trackelement = (GESTrackElement *) tmp->data;
+    if (GES_IS_MULTI_FILE_SOURCE (trackelement))
+      g_print ("trackelement\n");
+    g_object_set ((GESVideoTestSource *) trackelement, "location",
+        location, NULL);
+  }
 }
 
 /**
@@ -169,17 +173,17 @@ ges_multi_file_clip_set_location (GESMultiFileClip * self, gchar * location)
 void
 ges_multi_file_clip_set_fps (GESMultiFileClip * self, guint fps)
 {
-  GList *tmp;
+  //GList *tmp;
 
   self->priv->fps = fps;
-
+/*
   for (tmp = GES_CONTAINER_CHILDREN (self); tmp; tmp = tmp->next) {
     GESTrackElement *trackelement = (GESTrackElement *) tmp->data;
     if (GES_IS_MULTI_FILE_SOURCE (trackelement))
-      g_print ("trackelement\n");
     //ges_multi_file_source_set_pattern (
     //    (GESMultiFileSource *) trackelement, vpattern);
   }
+*/
 }
 
 
@@ -223,6 +227,9 @@ ges_multi_file_clip_create_track_element (GESClip * clip, GESTrackType type)
 
   if (type == GES_TRACK_TYPE_VIDEO) {
     res = (GESTrackElement *) ges_multi_file_source_new (priv->location);
+
+    g_object_set ((GESMultiFileSource *) res, "location", priv->location, NULL);
+
     //ges_multi_file_source_set_fps (
     //    (GESVideoTestSource *) res, priv->fps);
   }
