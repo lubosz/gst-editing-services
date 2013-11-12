@@ -94,48 +94,63 @@ pad_added_cb (GstElement * timeline, GstPad * pad, GstElement * scale)
 
   sinkpad = gst_element_get_static_pad (scale, "sink");
   if (sinkpad) {
-    GST_DEBUG ("got sink pad, trying to link");
+    GST_ERROR ("got sink pad, trying to link");
 
     ret = gst_pad_link (pad, sinkpad);
     gst_object_unref (sinkpad);
     if (GST_PAD_LINK_SUCCESSFUL (ret)) {
-      GST_DEBUG ("linked ok, returning");
+      GST_ERROR ("linked ok, returning");
       return;
     }
   }
 
-  GST_DEBUG ("pad failed to link properly");
+  GST_ERROR ("pad failed to link properly");
 }
 
 static GstElement *
 ges_multi_file_source_create_source (GESTrackElement * track_element)
 {
-  GstElement *bin, *source, *decodebin, *iconv;
-  GstPad *src, *target;
+  GstElement *source, *decodebin, *videoconvert, *capsfilter, *bin;
+  //GstPad *src, *target;
 
-  bin = GST_ELEMENT (gst_bin_new ("still-image-bin"));
+  //bin = GST_ELEMENT (gst_bin_new ("multi-image-bin"));
   source = gst_element_factory_make ("multifilesrc", NULL);
   decodebin = gst_element_factory_make ("decodebin", NULL);
-  iconv = gst_element_factory_make ("videoconvert", NULL);
+  videoconvert = gst_element_factory_make ("videoconvert", NULL);
 
-  gst_bin_add_many (GST_BIN (bin), source, decodebin, iconv, NULL);
+/*
+  gst_bin_add_many (GST_BIN (bin), source, decodebin, videoconvert, NULL);
 
-  gst_element_link_pads_full (decodebin, "src", iconv, "sink",
+  gst_element_link_pads_full (source, "src", decodebin, "sink",
       GST_PAD_LINK_CHECK_NOTHING);
 
-  /* FIXME: add capsfilter here with sink caps (see 626518) */
+  gst_element_link_pads_full (decodebin, "src", videoconvert, "sink",
+      GST_PAD_LINK_CHECK_NOTHING);
 
-  target = gst_element_get_static_pad (iconv, "src");
+
+  target = gst_element_get_static_pad (videoconvert, "src");
 
   src = gst_ghost_pad_new ("src", target);
   gst_element_add_pad (bin, src);
   gst_object_unref (target);
 
+*/
+
   g_object_set (source, "location",
       ((GESMultiFileSource *) track_element)->location, NULL);
 
+  GST_ERROR ("location %s", ((GESMultiFileSource *) track_element)->location);
+
   g_signal_connect (G_OBJECT (source), "pad-added",
-      G_CALLBACK (pad_added_cb), iconv);
+      G_CALLBACK (pad_added_cb), videoconvert);
+
+  capsfilter = gst_element_factory_make ("capsfilter", NULL);
+  g_object_set (capsfilter, "caps",
+      gst_caps_from_string ("image/png,framerate=25/1"), NULL);
+
+  bin =
+      ges_source_create_topbin ("multifilesrc", source, capsfilter, decodebin,
+      videoconvert, NULL);
 
   return bin;
 }

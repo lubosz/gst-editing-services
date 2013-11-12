@@ -38,9 +38,6 @@
 
 G_DEFINE_TYPE (GESMultiFileClip, ges_multi_file_clip, GES_TYPE_SOURCE_CLIP);
 
-#define DEFAULT_VOLUME 1.0
-#define DEFAULT_VPATTERN GES_VIDEO_TEST_PATTERN_SMPTE
-
 struct _GESMultiFileClipPrivate
 {
   gchar *location;
@@ -149,17 +146,18 @@ ges_multi_file_clip_init (GESMultiFileClip * self)
 void
 ges_multi_file_clip_set_location (GESMultiFileClip * self, gchar * location)
 {
-  GList *tmp;
+  //GList *tmp;
 
   self->priv->location = location;
 
+/*
   for (tmp = GES_CONTAINER_CHILDREN (self); tmp; tmp = tmp->next) {
-    GESTrackElement *trackelement = (GESTrackElement *) tmp->data;
-    if (GES_IS_MULTI_FILE_SOURCE (trackelement))
-      g_print ("trackelement\n");
-    g_object_set ((GESVideoTestSource *) trackelement, "location",
-        location, NULL);
+    //GESTrackElement *trackelement = (GESTrackElement *) tmp->data;
+    //if (GES_IS_MULTI_FILE_SOURCE (trackelement))
+    //g_object_set ((GESVideoTestSource *) trackelement, "location",
+    //    location, NULL);
   }
+*/
 }
 
 /**
@@ -228,7 +226,7 @@ ges_multi_file_clip_create_track_element (GESClip * clip, GESTrackType type)
   if (type == GES_TRACK_TYPE_VIDEO) {
     res = (GESTrackElement *) ges_multi_file_source_new (priv->location);
 
-    g_object_set ((GESMultiFileSource *) res, "location", priv->location, NULL);
+    //g_object_set ((GESMultiFileSource *) res, "location", priv->location, NULL);
 
     //ges_multi_file_source_set_fps (
     //    (GESVideoTestSource *) res, priv->fps);
