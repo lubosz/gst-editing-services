@@ -29,16 +29,16 @@ G_BEGIN_DECLS
 
 #define GES_TYPE_IMAGE_SEQUENCE_SOURCE ges_image_sequence_source_get_type()
 
-#define GES_IMAGE_SOURCE(obj) \
+#define GES_IMAGE_SEQUENCE_SOURCE(obj) \
   (G_TYPE_CHECK_INSTANCE_CAST ((obj), GES_TYPE_IMAGE_SEQUENCE_SOURCE, GESImageSequenceSource))
 
 #define ges_image_sequence_source_CLASS(klass) \
   (G_TYPE_CHECK_CLASS_CAST ((klass), GES_TYPE_IMAGE_SEQUENCE_SOURCE, GESImageSequenceSourceClass))
 
-#define GES_IS_IMAGE_SOURCE(obj) \
+#define GES_IS_IMAGE_SEQUENCE_SOURCE(obj) \
   (G_TYPE_CHECK_INSTANCE_TYPE ((obj), GES_TYPE_IMAGE_SEQUENCE_SOURCE))
 
-#define GES_IS_IMAGE_SOURCE_CLASS(klass) \
+#define GES_IS_IMAGE_SEQUENCE_SOURCE_CLASS(klass) \
   (G_TYPE_CHECK_CLASS_TYPE ((klass), GES_TYPE_IMAGE_SEQUENCE_SOURCE))
 
 #define ges_image_sequence_source_GET_CLASS(obj) \
@@ -53,7 +53,7 @@ struct _GESImageSequenceSource {
   /*< private >*/
   GESVideoSource parent;
 
-  gchar *uri;
+  gchar *location;
 
   GESImageSequenceSourcePrivate *priv;
 
@@ -70,7 +70,7 @@ struct _GESImageSequenceSourceClass {
 
 GType ges_image_sequence_source_get_type (void);
 
-GESImageSequenceSource* ges_image_sequence_source_new (gchar *uri);
+GESImageSequenceSource* ges_image_sequence_source_new (gchar *location);
 
 G_END_DECLS
 

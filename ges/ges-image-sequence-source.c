@@ -19,13 +19,11 @@
  */
 
 /**
- * SECTION:ges-image-source
- * @short_description: outputs the video stream from a media file as a still
- * image.
+ * SECTION:ges-image-sequence-source
+ * @short_description: outputs the video stream from a sequence of images.
  * 
- * Outputs the video stream from a given file as a still frame. The frame
- * chosen will be determined by the in-point property on the track element. For
- * image files, do not set the in-point property.
+ * Outputs the video stream from a given image sequence. The start frame
+ * chosen will be determined by the in-point property on the track element.
  */
 
 #include "ges-internal.h"
@@ -51,11 +49,11 @@ static void
 ges_image_sequence_source_get_property (GObject * object, guint property_id,
     GValue * value, GParamSpec * pspec)
 {
-  GESImageSequenceSource *uriclip = GES_IMAGE_SOURCE (object);
+  GESImageSequenceSource *uriclip = GES_IMAGE_SEQUENCE_SOURCE (object);
 
   switch (property_id) {
     case PROP_URI:
-      g_value_set_string (value, uriclip->uri);
+      g_value_set_string (value, uriclip->location);
       break;
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
@@ -66,11 +64,11 @@ static void
 ges_image_sequence_source_set_property (GObject * object, guint property_id,
     const GValue * value, GParamSpec * pspec)
 {
-  GESImageSequenceSource *uriclip = GES_IMAGE_SOURCE (object);
+  GESImageSequenceSource *uriclip = GES_IMAGE_SEQUENCE_SOURCE (object);
 
   switch (property_id) {
     case PROP_URI:
-      uriclip->uri = g_value_dup_string (value);
+      uriclip->location = g_value_dup_string (value);
       break;
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
@@ -80,10 +78,10 @@ ges_image_sequence_source_set_property (GObject * object, guint property_id,
 static void
 ges_image_sequence_source_dispose (GObject * object)
 {
-  GESImageSequenceSource *uriclip = GES_IMAGE_SOURCE (object);
+  GESImageSequenceSource *uriclip = GES_IMAGE_SEQUENCE_SOURCE (object);
 
-  if (uriclip->uri)
-    g_free (uriclip->uri);
+  if (uriclip->location)
+    g_free (uriclip->location);
 
   G_OBJECT_CLASS (ges_image_sequence_source_parent_class)->dispose (object);
 }
@@ -112,7 +110,7 @@ pad_added_cb (GstElement * timeline, GstPad * pad, GstElement * scale)
 static GstElement *
 ges_image_sequence_source_create_source (GESTrackElement * track_element)
 {
-  GstElement *bin, *source, *decodebin, *freeze, *iconv;
+  GstElement *bin, *source, *decodebin, *iconv;
   GstPad *src, *target;
 
   bin = GST_ELEMENT (gst_bin_new ("still-image-bin"));
@@ -133,11 +131,11 @@ ges_image_sequence_source_create_source (GESTrackElement * track_element)
   gst_element_add_pad (bin, src);
   gst_object_unref (target);
 
-  g_object_set (source, "uri", ((GESImageSequenceSource *) track_element)->uri,
-      NULL);
+  g_object_set (source, "location",
+      ((GESImageSequenceSource *) track_element)->location, NULL);
 
   g_signal_connect (G_OBJECT (source), "pad-added",
-      G_CALLBACK (pad_added_cb), scale);
+      G_CALLBACK (pad_added_cb), iconv);
 
   return bin;
 }
@@ -155,12 +153,12 @@ ges_image_sequence_source_class_init (GESImageSequenceSourceClass * klass)
   object_class->dispose = ges_image_sequence_source_dispose;
 
   /**
-   * GESImageSequenceSource:uri:
+   * GESImageSequenceSource:location:
    *
    * The location of the file/resource to use.
    */
   g_object_class_install_property (object_class, PROP_URI,
-      g_param_spec_string ("uri", "URI", "uri of the resource",
+      g_param_spec_string ("location", "LOCATION", "location of the resource",
           NULL, G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
   source_class->create_source = ges_image_sequence_source_create_source;
 }
@@ -174,15 +172,15 @@ ges_image_sequence_source_init (GESImageSequenceSource * self)
 
 /**
  * ges_image_sequence_source_new:
- * @uri: the URI the source should control
+ * @location: the URI the source should control
  *
- * Creates a new #GESImageSequenceSource for the provided @uri.
+ * Creates a new #GESImageSequenceSource for the provided @location.
  *
  * Returns: A new #GESImageSequenceSource.
  */
 GESImageSequenceSource *
-ges_image_sequence_source_new (gchar * uri)
+ges_image_sequence_source_new (gchar * location)
 {
-  return g_object_new (GES_TYPE_IMAGE_SEQUENCE_SOURCE, "uri", uri, "track-type",
-      GES_TRACK_TYPE_VIDEO, NULL);
+  return g_object_new (GES_TYPE_IMAGE_SEQUENCE_SOURCE, "location", location,
+      "track-type", GES_TRACK_TYPE_VIDEO, NULL);
 }

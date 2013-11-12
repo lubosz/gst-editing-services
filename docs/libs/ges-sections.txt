@@ -271,6 +271,23 @@ ges_image_source_get_type
 </SECTION>
 
 <SECTION>
+<FILE>ges-image-sequence-source</FILE>
+<TITLE>GESImageSequenceSource</TITLE>
+GESImageSequenceSource
+ges_image_sequence_source_new
+<SUBSECTION Standard>
+GESImageSequenceSourcePrivate
+GES_IS_IMAGE_SEQUENCE_SOURCE
+GES_IS_IMAGE_SEQUENCE_SOURCE_CLASS
+GES_IMAGE_SEQUENCE_SOURCE
+GES_IMAGE_SEQUENCE_SOURCE_CLASS
+GES_IMAGE_SEQUENCE_SOURCE_GET_CLASS
+GES_TYPE_IMAGE_SEQUENCE_SOURCE
+GESImageSequenceSourceClass
+ges_image_sequence_source_get_type
+</SECTION>
+
+<SECTION>
 <FILE>ges-transition</FILE>
 <TITLE>GESTransition</TITLE>
 GESTransition
