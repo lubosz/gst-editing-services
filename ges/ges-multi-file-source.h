@@ -18,8 +18,8 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#ifndef _GES_IMAGE_SEQUENCE_SOURCE
-#define _GES_IMAGE_SEQUENCE_SOURCE
+#ifndef _GES_MULTI_FILE_SOURCE
+#define _GES_MULTI_FILE_SOURCE
 
 #include <glib-object.h>
 #include <ges/ges-types.h>
@@ -27,52 +27,52 @@
 
 G_BEGIN_DECLS
 
-#define GES_TYPE_IMAGE_SEQUENCE_SOURCE ges_image_sequence_source_get_type()
+#define GES_TYPE_MULTI_FILE_SOURCE ges_multi_file_source_get_type()
 
-#define GES_IMAGE_SEQUENCE_SOURCE(obj) \
-  (G_TYPE_CHECK_INSTANCE_CAST ((obj), GES_TYPE_IMAGE_SEQUENCE_SOURCE, GESImageSequenceSource))
+#define GES_MULTI_FILE_SOURCE(obj) \
+  (G_TYPE_CHECK_INSTANCE_CAST ((obj), GES_TYPE_MULTI_FILE_SOURCE, GESMultiFileSource))
 
-#define ges_image_sequence_source_CLASS(klass) \
-  (G_TYPE_CHECK_CLASS_CAST ((klass), GES_TYPE_IMAGE_SEQUENCE_SOURCE, GESImageSequenceSourceClass))
+#define ges_multi_file_source_CLASS(klass) \
+  (G_TYPE_CHECK_CLASS_CAST ((klass), GES_TYPE_MULTI_FILE_SOURCE, GESMultiFileSourceClass))
 
-#define GES_IS_IMAGE_SEQUENCE_SOURCE(obj) \
-  (G_TYPE_CHECK_INSTANCE_TYPE ((obj), GES_TYPE_IMAGE_SEQUENCE_SOURCE))
+#define GES_IS_MULTI_FILE_SOURCE(obj) \
+  (G_TYPE_CHECK_INSTANCE_TYPE ((obj), GES_TYPE_MULTI_FILE_SOURCE))
 
-#define GES_IS_IMAGE_SEQUENCE_SOURCE_CLASS(klass) \
-  (G_TYPE_CHECK_CLASS_TYPE ((klass), GES_TYPE_IMAGE_SEQUENCE_SOURCE))
+#define GES_IS_MULTI_FILE_SOURCE_CLASS(klass) \
+  (G_TYPE_CHECK_CLASS_TYPE ((klass), GES_TYPE_MULTI_FILE_SOURCE))
 
-#define ges_image_sequence_source_GET_CLASS(obj) \
-  (G_TYPE_INSTANCE_GET_CLASS ((obj), GES_TYPE_IMAGE_SEQUENCE_SOURCE, GESImageSequenceSourceClass))
+#define ges_multi_file_source_GET_CLASS(obj) \
+  (G_TYPE_INSTANCE_GET_CLASS ((obj), GES_TYPE_MULTI_FILE_SOURCE, GESMultiFileSourceClass))
 
-typedef struct _GESImageSequenceSourcePrivate GESImageSequenceSourcePrivate;
+typedef struct _GESMultiFileSourcePrivate GESMultiFileSourcePrivate;
 
 /**
- * GESImageSequenceSource:
+ * GESMultiFileSource:
  */
-struct _GESImageSequenceSource {
+struct _GESMultiFileSource {
   /*< private >*/
   GESVideoSource parent;
 
   gchar *location;
 
-  GESImageSequenceSourcePrivate *priv;
+  GESMultiFileSourcePrivate *priv;
 
   /* Padding for API extension */
   gpointer _ges_reserved[GES_PADDING];
 };
 
-struct _GESImageSequenceSourceClass {
+struct _GESMultiFileSourceClass {
   GESVideoSourceClass parent_class;
 
   /* Padding for API extension */
   gpointer _ges_reserved[GES_PADDING];
 };
 
-GType ges_image_sequence_source_get_type (void);
+GType ges_multi_file_source_get_type (void);
 
-GESImageSequenceSource* ges_image_sequence_source_new (gchar *location);
+GESMultiFileSource* ges_multi_file_source_new (gchar *location);
 
 G_END_DECLS
 
-#endif /* _GES_IMAGE_SEQUENCE_SOURCE */
+#endif /* _GES_MULTI_FILE_SOURCE */
 
