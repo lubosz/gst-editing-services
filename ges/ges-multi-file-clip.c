@@ -33,6 +33,7 @@
 #include "ges-multi-file-clip.h"
 #include "ges-source-clip.h"
 #include "ges-track-element.h"
+#include "ges-multi-file-source.h"
 #include "ges-video-test-source.h"
 #include "ges-audio-test-source.h"
 #include <string.h>
@@ -45,10 +46,10 @@ G_DEFINE_TYPE (GESMultiFileClip, ges_multi_file_clip, GES_TYPE_SOURCE_CLIP);
 struct _GESMultiFileClipPrivate
 {
   gchar *location;
-  //gboolean mute;
-  //GESVideoTestPattern vpattern;
-  //gdouble freq;
-  //gdouble volume;
+  gboolean mute;
+  GESVideoTestPattern vpattern;
+  gdouble freq;
+  gdouble volume;
 };
 
 enum
@@ -224,7 +225,7 @@ ges_multi_file_clip_set_vpattern (GESMultiFileClip * self,
   for (tmp = GES_CONTAINER_CHILDREN (self); tmp; tmp = tmp->next) {
     GESTrackElement *trackelement = (GESTrackElement *) tmp->data;
     if (GES_IS_MULTI_FILE_SOURCE (trackelement))
-      print ("foo");
+      g_print ("foo");
     //ges_multi_file_source_set_pattern (
     //    (GESMultiFileSource *) trackelement, vpattern);
   }
@@ -388,7 +389,7 @@ ges_multi_file_clip_new (void)
  * error.
  */
 GESMultiFileClip *
-ges_multi_file_clip_new_for_nick (gchar * nick)
+ges_multi_file_clip_new_from_location (gchar * location)
 {
   GEnumValue *value;
   GEnumClass *klass;
@@ -398,7 +399,7 @@ ges_multi_file_clip_new_for_nick (gchar * nick)
   if (!klass)
     return NULL;
 
-  value = g_enum_get_value_by_nick (klass, nick);
+  value = g_enum_get_value_by_nick (klass, location);
   if (value) {
     ret = ges_multi_file_clip_new ();
     ges_multi_file_clip_set_vpattern (ret, value->value);

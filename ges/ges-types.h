@@ -122,6 +122,9 @@ typedef struct _GESImageSourceClass GESImageSourceClass;
 typedef struct _GESMultiFileSource GESMultiFileSource;
 typedef struct _GESMultiFileSourceClass GESMultiFileSourceClass;
 
+typedef struct _GESMultiFileClip GESMultiFileClip;
+typedef struct _GESMultiFileClipClass GESMultiFileClipClass;
+
 typedef struct _GESTransition GESTransition;
 typedef struct _GESTransitionClass GESTransitionClass;
 
