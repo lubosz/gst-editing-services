@@ -79,26 +79,13 @@ struct _GESMultiFileClipClass {
 GType ges_multi_file_clip_get_type (void);
 
 void
-ges_multi_file_clip_set_mute (GESMultiFileClip * self, gboolean mute);
+ges_multi_file_clip_set_fps (GESMultiFileClip * self, guint fps);
 
 void
-ges_multi_file_clip_set_vpattern (GESMultiFileClip * self,
-    GESVideoTestPattern vpattern);
+ges_multi_file_clip_set_location (GESMultiFileClip * self, gchar * location);
 
-void
-ges_multi_file_clip_set_frequency (GESMultiFileClip * self, gdouble freq);
-
-void
-ges_multi_file_clip_set_volume (GESMultiFileClip * self,
-    gdouble volume);
-
-
-GESVideoTestPattern
-ges_multi_file_clip_get_vpattern (GESMultiFileClip * self);
-
-gboolean ges_multi_file_clip_is_muted (GESMultiFileClip * self);
-gdouble ges_multi_file_clip_get_frequency (GESMultiFileClip * self);
-gdouble ges_multi_file_clip_get_volume (GESMultiFileClip * self);
+guint ges_multi_file_clip_get_fps (GESMultiFileClip * self);
+gchar * ges_multi_file_clip_get_location (GESMultiFileClip * self);
 
 GESMultiFileClip* ges_multi_file_clip_new (void);
 GESMultiFileClip* ges_multi_file_clip_new_from_location(gchar * location);

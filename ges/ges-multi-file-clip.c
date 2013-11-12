@@ -34,8 +34,6 @@
 #include "ges-source-clip.h"
 #include "ges-track-element.h"
 #include "ges-multi-file-source.h"
-#include "ges-video-test-source.h"
-#include "ges-audio-test-source.h"
 #include <string.h>
 
 G_DEFINE_TYPE (GESMultiFileClip, ges_multi_file_clip, GES_TYPE_SOURCE_CLIP);
@@ -46,19 +44,14 @@ G_DEFINE_TYPE (GESMultiFileClip, ges_multi_file_clip, GES_TYPE_SOURCE_CLIP);
 struct _GESMultiFileClipPrivate
 {
   gchar *location;
-  gboolean mute;
-  GESVideoTestPattern vpattern;
-  gdouble freq;
-  gdouble volume;
+  guint fps;
 };
 
 enum
 {
   PROP_0,
-  PROP_MUTE,
-  PROP_VPATTERN,
-  PROP_FREQ,
-  PROP_VOLUME,
+  PROP_LOCATION,
+  PROP_FPS,
 };
 
 static GESTrackElement
@@ -72,17 +65,11 @@ ges_multi_file_clip_get_property (GObject * object, guint property_id,
   GESMultiFileClipPrivate *priv = GES_MULTI_FILE_CLIP (object)->priv;
 
   switch (property_id) {
-    case PROP_MUTE:
-      g_value_set_boolean (value, priv->mute);
+    case PROP_LOCATION:
+      g_value_set_string (value, priv->location);
       break;
-    case PROP_VPATTERN:
-      g_value_set_enum (value, priv->vpattern);
-      break;
-    case PROP_FREQ:
-      g_value_set_double (value, priv->freq);
-      break;
-    case PROP_VOLUME:
-      g_value_set_double (value, priv->volume);
+    case PROP_FPS:
+      g_value_set_enum (value, priv->fps);
       break;
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
@@ -96,17 +83,11 @@ ges_multi_file_clip_set_property (GObject * object, guint property_id,
   GESMultiFileClip *uriclip = GES_MULTI_FILE_CLIP (object);
 
   switch (property_id) {
-    case PROP_MUTE:
-      ges_multi_file_clip_set_mute (uriclip, g_value_get_boolean (value));
+    case PROP_LOCATION:
+      ges_multi_file_clip_set_location (uriclip, g_value_dup_string (value));
       break;
-    case PROP_VPATTERN:
-      ges_multi_file_clip_set_vpattern (uriclip, g_value_get_enum (value));
-      break;
-    case PROP_FREQ:
-      ges_multi_file_clip_set_frequency (uriclip, g_value_get_double (value));
-      break;
-    case PROP_VOLUME:
-      ges_multi_file_clip_set_volume (uriclip, g_value_get_double (value));
+    case PROP_FPS:
+      ges_multi_file_clip_set_fps (uriclip, g_value_get_int (value));
       break;
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
@@ -125,45 +106,24 @@ ges_multi_file_clip_class_init (GESMultiFileClipClass * klass)
   object_class->set_property = ges_multi_file_clip_set_property;
 
   /**
-   * GESMultiFileClip:vpattern:
+   * GESMultiFileClip:location:
    *
-   * Video pattern to display in video track elements.
+   * Location of the files.
    */
-  g_object_class_install_property (object_class, PROP_VPATTERN,
-      g_param_spec_enum ("vpattern", "VPattern",
-          "Which video pattern to display. See videotestsrc element",
-          GES_VIDEO_TEST_PATTERN_TYPE,
-          DEFAULT_VPATTERN, G_PARAM_READWRITE | G_PARAM_CONSTRUCT));
+  g_object_class_install_property (object_class, PROP_LOCATION,
+      g_param_spec_string ("location", "Files Location",
+          "Location of the Sequence", NULL,
+          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
 
   /**
-   * GESMultiFileClip:freq:
+   * GESMultiFileClip:fps:
    *
-   * The frequency to generate for audio track elements.
+   * The fps of the sequence.
    */
-  g_object_class_install_property (object_class, PROP_FREQ,
-      g_param_spec_double ("freq", "Audio Frequency",
-          "The frequency to generate. See audiotestsrc element",
-          0, 20000, 440, G_PARAM_READWRITE | G_PARAM_CONSTRUCT));
+  g_object_class_install_property (object_class, PROP_FPS,
+      g_param_spec_int ("fps", "Frames Per Second",
+          "FPS Caps", 1, 200, 25, G_PARAM_READWRITE | G_PARAM_CONSTRUCT));
 
-  /**
-   * GESMultiFileClip:volume:
-   *
-   * The volume for the audio track elements.
-   */
-  g_object_class_install_property (object_class, PROP_VOLUME,
-      g_param_spec_double ("volume", "Audio Volume",
-          "The volume of the test audio signal.",
-          0, 1, DEFAULT_VOLUME, G_PARAM_READWRITE | G_PARAM_CONSTRUCT));
-
-
-  /**
-   * GESMultiFileClip:mute:
-   *
-   * Whether the sound will be played or not.
-   */
-  g_object_class_install_property (object_class, PROP_MUTE,
-      g_param_spec_boolean ("mute", "Mute", "Mute audio track",
-          FALSE, G_PARAM_READWRITE | G_PARAM_CONSTRUCT));
 
   timobj_class->create_track_element = ges_multi_file_clip_create_track_element;
 }
@@ -174,36 +134,28 @@ ges_multi_file_clip_init (GESMultiFileClip * self)
   self->priv = G_TYPE_INSTANCE_GET_PRIVATE (self,
       GES_TYPE_MULTI_FILE_CLIP, GESMultiFileClipPrivate);
 
-  self->priv->freq = 0;
-  self->priv->volume = 0;
+  self->priv->fps = 0;
   GES_TIMELINE_ELEMENT (self)->duration = 0;
 }
 
 /**
- * ges_multi_file_clip_set_mute:
- * @self: the #GESMultiFileClip on which to mute or unmute the audio track
- * @mute: %TRUE to mute the audio track, %FALSE to unmute it
+ * ges_multi_file_clip_set_location:
+ * @self: the #GESMultiFileClip on which to set the location
+ * @location: Location of the files as path
  *
- * Sets whether the audio track of this clip is muted or not.
+ * Sets the location.
  *
  */
 void
-ges_multi_file_clip_set_mute (GESMultiFileClip * self, gboolean mute)
+ges_multi_file_clip_set_location (GESMultiFileClip * self, gchar * location)
 {
-  GList *tmp;
+  //GList *tmp;
 
-  GST_DEBUG ("self:%p, mute:%d", self, mute);
+  //GST_DEBUG ("self:%p, mute:%d", self, mute);
 
-  self->priv->mute = mute;
+  self->priv->location = location;
 
   /* Go over tracked objects, and update 'active' status on all audio objects */
-  for (tmp = GES_CONTAINER_CHILDREN (self); tmp; tmp = tmp->next) {
-    GESTrackElement *trackelement = (GESTrackElement *) tmp->data;
-
-    if (ges_track_element_get_track (trackelement)->type ==
-        GES_TRACK_TYPE_AUDIO)
-      ges_track_element_set_active (trackelement, !mute);
-  }
 }
 
 /**
@@ -215,67 +167,22 @@ ges_multi_file_clip_set_mute (GESMultiFileClip * self, gboolean mute)
  *
  */
 void
-ges_multi_file_clip_set_vpattern (GESMultiFileClip * self,
-    GESVideoTestPattern vpattern)
+ges_multi_file_clip_set_fps (GESMultiFileClip * self, guint fps)
 {
   GList *tmp;
 
-  self->priv->vpattern = vpattern;
+  self->priv->fps = fps;
 
   for (tmp = GES_CONTAINER_CHILDREN (self); tmp; tmp = tmp->next) {
     GESTrackElement *trackelement = (GESTrackElement *) tmp->data;
     if (GES_IS_MULTI_FILE_SOURCE (trackelement))
-      g_print ("foo");
+      g_print ("trackelement\n");
     //ges_multi_file_source_set_pattern (
     //    (GESMultiFileSource *) trackelement, vpattern);
   }
 }
 
-/**
- * ges_multi_file_clip_set_frequency:
- * @self: the #GESMultiFileClip to set the frequency on
- * @freq: the frequency you want to use on @self
- *
- * Sets the frequency to generate. See audiotestsrc element.
- *
- */
-void
-ges_multi_file_clip_set_frequency (GESMultiFileClip * self, gdouble freq)
-{
-  GList *tmp;
 
-  self->priv->freq = freq;
-
-  for (tmp = GES_CONTAINER_CHILDREN (self); tmp; tmp = tmp->next) {
-    GESTrackElement *trackelement = (GESTrackElement *) tmp->data;
-    if (GES_IS_AUDIO_TEST_SOURCE (trackelement))
-      ges_audio_test_source_set_freq (
-          (GESAudioTestSource *) trackelement, freq);
-  }
-}
-
-/**
- * ges_multi_file_clip_set_volume:
- * @self: the #GESMultiFileClip to set the volume on
- * @volume: the volume of the audio signal you want to use on @self
- *
- * Sets the volume of the test audio signal.
- *
- */
-void
-ges_multi_file_clip_set_volume (GESMultiFileClip * self, gdouble volume)
-{
-  GList *tmp;
-
-  self->priv->volume = volume;
-
-  for (tmp = GES_CONTAINER_CHILDREN (self); tmp; tmp = tmp->next) {
-    GESTrackElement *trackelement = (GESTrackElement *) tmp->data;
-    if (GES_IS_AUDIO_TEST_SOURCE (trackelement))
-      ges_audio_test_source_set_volume (
-          (GESAudioTestSource *) trackelement, volume);
-  }
-}
 
 /**
  * ges_multi_file_clip_get_vpattern:
@@ -285,24 +192,10 @@ ges_multi_file_clip_set_volume (GESMultiFileClip * self, gdouble volume)
  *
  * Returns: The #GESVideoTestPattern which is applied on @self.
  */
-GESVideoTestPattern
-ges_multi_file_clip_get_vpattern (GESMultiFileClip * self)
+guint
+ges_multi_file_clip_get_fps (GESMultiFileClip * self)
 {
-  return self->priv->vpattern;
-}
-
-/**
- * ges_multi_file_clip_is_muted:
- * @self: a #GESMultiFileClip
- *
- * Let you know if the audio track of @self is muted or not.
- *
- * Returns: Whether the audio track of @self is muted or not.
- */
-gboolean
-ges_multi_file_clip_is_muted (GESMultiFileClip * self)
-{
-  return self->priv->mute;
+  return self->priv->fps;
 }
 
 /**
@@ -313,24 +206,10 @@ ges_multi_file_clip_is_muted (GESMultiFileClip * self)
  *
  * Returns: The frequency @self generates. See audiotestsrc element.
  */
-gdouble
-ges_multi_file_clip_get_frequency (GESMultiFileClip * self)
+char *
+ges_multi_file_clip_get_location (GESMultiFileClip * self)
 {
-  return self->priv->freq;
-}
-
-/**
- * ges_multi_file_clip_get_volume:
- * @self: a #GESMultiFileClip
- *
- * Get the volume of the test audio signal applied on @self.
- *
- * Returns: The volume of the test audio signal applied on @self.
- */
-gdouble
-ges_multi_file_clip_get_volume (GESMultiFileClip * self)
-{
-  return self->priv->volume;
+  return self->priv->location;
 }
 
 static GESTrackElement *
@@ -343,17 +222,9 @@ ges_multi_file_clip_create_track_element (GESClip * clip, GESTrackType type)
       ges_track_type_name (type));
 
   if (type == GES_TRACK_TYPE_VIDEO) {
-    res = (GESTrackElement *) ges_video_test_source_new ();
-    ges_video_test_source_set_pattern (
-        (GESVideoTestSource *) res, priv->vpattern);
-  } else if (type == GES_TRACK_TYPE_AUDIO) {
-    res = (GESTrackElement *) ges_audio_test_source_new ();
-
-    if (priv->mute)
-      ges_track_element_set_active (res, FALSE);
-
-    ges_audio_test_source_set_freq ((GESAudioTestSource *) res, priv->freq);
-    ges_audio_test_source_set_volume ((GESAudioTestSource *) res, priv->volume);
+    res = (GESTrackElement *) ges_multi_file_source_new (priv->location);
+    //ges_multi_file_source_set_fps (
+    //    (GESVideoTestSource *) res, priv->fps);
   }
 
   return res;
@@ -391,6 +262,8 @@ ges_multi_file_clip_new (void)
 GESMultiFileClip *
 ges_multi_file_clip_new_from_location (gchar * location)
 {
+  return g_object_new (GES_TYPE_MULTI_FILE_CLIP, "location", location, NULL);
+/*
   GEnumValue *value;
   GEnumClass *klass;
   GESMultiFileClip *ret = NULL;
@@ -402,9 +275,10 @@ ges_multi_file_clip_new_from_location (gchar * location)
   value = g_enum_get_value_by_nick (klass, location);
   if (value) {
     ret = ges_multi_file_clip_new ();
-    ges_multi_file_clip_set_vpattern (ret, value->value);
+    //ges_multi_file_clip_set_vpattern (ret, value->value);
   }
 
   g_type_class_unref (klass);
   return ret;
+*/
 }
