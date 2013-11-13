@@ -86,18 +86,28 @@ ges_multi_file_source_dispose (GObject * object)
   G_OBJECT_CLASS (ges_multi_file_source_parent_class)->dispose (object);
 }
 
+static void
+pad_added_cb (GstElement * decodebin, GstPad * pad, GstElement * bin)
+{
+  GstPad *srcpad;
+
+  srcpad = gst_ghost_pad_new ("src", pad);
+
+  gst_pad_set_active (srcpad, TRUE);
+  gst_element_add_pad (bin, srcpad);
+}
+
 static GstElement *
 ges_multi_file_source_create_source (GESTrackElement * track_element)
 {
-  GstPad *srcp, *target;
+  //GstPad *srcp, *target;
   GstCaps *caps;
   GESMultiFileSource *self;
   //GESTrack *track;
   GstElement *bin, *src, *decodebin;
 
-  caps =
-      gst_caps_new_simple ("image/png", "framerate", GST_TYPE_FRACTION, 25,
-      1, NULL);
+  caps = gst_caps_new_simple ("image/png", "framerate",
+      GST_TYPE_FRACTION, 25, 1, NULL);
 
   //caps = gst_caps_from_string ("image/png,framerate=25/1");
 
@@ -109,18 +119,26 @@ ges_multi_file_source_create_source (GESTrackElement * track_element)
   bin = GST_ELEMENT (gst_bin_new ("multi-image-bin"));
 
   src = gst_element_factory_make ("multifilesrc", NULL);
-  decodebin = gst_element_factory_make ("pngdec", NULL);
+  decodebin = gst_element_factory_make ("decodebin", NULL);
 
   g_object_set (src, "caps", caps, "location", self->location, NULL);
+  g_object_set (decodebin, "caps", caps, "expose-all-streams", FALSE, NULL);
 
   gst_bin_add_many (GST_BIN (bin), src, decodebin, NULL);
   gst_element_link_pads_full (src, "src", decodebin, "sink",
       GST_PAD_LINK_CHECK_NOTHING);
 
+/*
   target = gst_element_get_static_pad (decodebin, "src");
   srcp = gst_ghost_pad_new ("src", target);
   gst_element_add_pad (bin, srcp);
   gst_object_unref (target);
+*/
+
+  //bin = ges_source_create_topbin("multi-image-bin", src, decodebin, NULL);
+
+  g_signal_connect (G_OBJECT (decodebin), "pad-added",
+      G_CALLBACK (pad_added_cb), bin);
 
 /*
   GstElement *bin;
