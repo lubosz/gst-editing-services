@@ -86,75 +86,47 @@ ges_multi_file_source_dispose (GObject * object)
   G_OBJECT_CLASS (ges_multi_file_source_parent_class)->dispose (object);
 }
 
-/*
-static void
-pad_added_cb (GstElement * timeline, GstPad * pad, GstElement * scale)
-{
-  GstPad *sinkpad;
-  GstPadLinkReturn ret;
-
-  sinkpad = gst_element_get_static_pad (scale, "sink");
-  if (sinkpad) {
-    GST_ERROR ("got sink pad, trying to link");
-
-    ret = gst_pad_link (pad, sinkpad);
-    gst_object_unref (sinkpad);
-    if (GST_PAD_LINK_SUCCESSFUL (ret)) {
-      GST_ERROR ("linked ok, returning");
-      return;
-    }
-  }
-
-  GST_ERROR ("pad failed to link properly");
-}
-*/
-
 static GstElement *
 ges_multi_file_source_create_source (GESTrackElement * track_element)
 {
-  //GstElement *source, *decodebin, *videoconvert, *capsfilter, *bin;
-  GstElement *source, *decodebin, *bin;
+  GstPad *srcp, *target;
   GstCaps *caps;
-  //GstPad *src, *target;
-
-  bin = GST_ELEMENT (gst_bin_new ("multi-image-bin"));
-  source = gst_element_factory_make ("multifilesrc", NULL);
-  decodebin = gst_element_factory_make ("decodebin", NULL);
-  //videoconvert = gst_element_factory_make ("videoconvert", NULL);
-
-  gst_bin_add_many (GST_BIN (bin), source, decodebin, NULL);
-  gst_element_link_pads_full (source, "src", decodebin, "sink",
-      GST_PAD_LINK_CHECK_NOTHING);
-/*
-  gst_element_link_pads_full (decodebin, "src", videoconvert, "sink",
-      GST_PAD_LINK_CHECK_NOTHING);
-*/
+  GESMultiFileSource *self;
+  //GESTrack *track;
+  GstElement *bin, *src, *decodebin;
 
   caps =
       gst_caps_new_simple ("image/png", "framerate", GST_TYPE_FRACTION, 25,
       1, NULL);
-  //gst_caps_from_string ("image/png,framerate=25/1")
-  g_object_set (source, "caps", caps, NULL);
 
-  g_object_set (source, "location",
-      ((GESMultiFileSource *) track_element)->location, NULL);
+  //caps = gst_caps_from_string ("image/png,framerate=25/1");
 
-  //g_signal_connect (G_OBJECT (source), "pad-added",
-  //    G_CALLBACK (pad_added_cb), videoconvert);
+  //track = ges_track_element_get_track (track_element);
+  //caps = ges_track_get_caps (track);
 
-/*
-  capsfilter = gst_element_factory_make ("capsfilter", NULL);
-  g_object_set (capsfilter, "caps",
-      gst_caps_from_string ("image/png,framerate=25/1"), NULL);
-*/
+  self = (GESMultiFileSource *) track_element;
 
-  //bin = ges_source_create_topbin ("multifilesrc", source, decodebin, videoconvert, NULL);
+  bin = GST_ELEMENT (gst_bin_new ("multi-image-bin"));
 
-/*
+  src = gst_element_factory_make ("multifilesrc", NULL);
+  decodebin = gst_element_factory_make ("pngdec", NULL);
+
+  g_object_set (src, "caps", caps, "location", self->location, NULL);
+
+  gst_bin_add_many (GST_BIN (bin), src, decodebin, NULL);
+  gst_element_link_pads_full (src, "src", decodebin, "sink",
+      GST_PAD_LINK_CHECK_NOTHING);
+
   target = gst_element_get_static_pad (decodebin, "src");
-  src = gst_ghost_pad_new ("src", target);
-  gst_element_add_pad (bin, src);
+  srcp = gst_ghost_pad_new ("src", target);
+  gst_element_add_pad (bin, srcp);
   gst_object_unref (target);
+
+/*
+  GstElement *bin;
+  GError **err = NULL;
+
+  bin = gst_parse_bin_from_description ("multifilesrc location=/home/bmonkey/workspace/ges/data/transparent/blender-cube/png/%04d.png caps=image/png,framerate=25/1 ! pngdec", TRUE, err);
 */
 
   return bin;

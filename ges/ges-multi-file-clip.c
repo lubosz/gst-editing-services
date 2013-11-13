@@ -225,9 +225,6 @@ ges_multi_file_clip_create_track_element (GESClip * clip, GESTrackType type)
 
   if (type == GES_TRACK_TYPE_VIDEO) {
     res = (GESTrackElement *) ges_multi_file_source_new (priv->location);
-
-    //g_object_set ((GESMultiFileSource *) res, "location", priv->location, NULL);
-
     //ges_multi_file_source_set_fps (
     //    (GESVideoTestSource *) res, priv->fps);
   }
@@ -268,22 +265,4 @@ GESMultiFileClip *
 ges_multi_file_clip_new_from_location (gchar * location)
 {
   return g_object_new (GES_TYPE_MULTI_FILE_CLIP, "location", location, NULL);
-/*
-  GEnumValue *value;
-  GEnumClass *klass;
-  GESMultiFileClip *ret = NULL;
-
-  klass = G_ENUM_CLASS (g_type_class_ref (GES_VIDEO_TEST_PATTERN_TYPE));
-  if (!klass)
-    return NULL;
-
-  value = g_enum_get_value_by_nick (klass, location);
-  if (value) {
-    ret = ges_multi_file_clip_new ();
-    //ges_multi_file_clip_set_vpattern (ret, value->value);
-  }
-
-  g_type_class_unref (klass);
-  return ret;
-*/
 }
