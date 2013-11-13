@@ -26,14 +26,18 @@ main (int argc, gchar ** argv)
   GESPipeline *pipeline;
   GESTimeline *timeline;
   GESMultiFileClip *clip;
+  //GESTestClip *clip;
   GESLayer *layer;
   GMainLoop *mainloop;
   gchar *path;
+  GESTrack *track;
 
   gst_init (&argc, &argv);
   ges_init ();
 
-  timeline = ges_timeline_new_audio_video ();
+  timeline = ges_timeline_new ();
+  track = GES_TRACK (ges_video_track_new ());
+  ges_timeline_add_track (timeline, track);
 
   layer = ges_layer_new ();
   if (!ges_timeline_add_layer (timeline, layer))
@@ -45,6 +49,9 @@ main (int argc, gchar ** argv)
       NULL);
 
   clip = ges_multi_file_clip_new_from_location (path);
+/*
+  clip = ges_test_clip_new();
+*/
 
   g_object_set (clip, "duration", 4 * GST_SECOND, NULL);
 
@@ -57,10 +64,16 @@ main (int argc, gchar ** argv)
 
   gst_element_set_state (GST_ELEMENT (pipeline), GST_STATE_PLAYING);
 
+  GST_DEBUG_BIN_TO_DOT_FILE_WITH_TS (GST_BIN (pipeline),
+      GST_DEBUG_GRAPH_SHOW_ALL, "multi");
+
   mainloop = g_main_loop_new (NULL, FALSE);
 
   g_timeout_add_seconds (4, (GSourceFunc) g_main_loop_quit, mainloop);
   g_main_loop_run (mainloop);
+
+  GST_DEBUG_BIN_TO_DOT_FILE_WITH_TS (GST_BIN (pipeline),
+      GST_DEBUG_GRAPH_SHOW_ALL, "multi2");
 
   return 0;
 }
