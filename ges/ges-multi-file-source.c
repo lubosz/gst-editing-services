@@ -113,39 +113,31 @@ static GstElement *
 ges_multi_file_source_create_source (GESTrackElement * track_element)
 {
   //GstElement *source, *decodebin, *videoconvert, *capsfilter, *bin;
-  GstElement *source, *decodebin, *bin, *videoconvert;
+  GstElement *source, *decodebin, *bin;
+  GstCaps *caps;
   //GstPad *src, *target;
 
-  //bin = GST_ELEMENT (gst_bin_new ("multi-image-bin"));
+  bin = GST_ELEMENT (gst_bin_new ("multi-image-bin"));
   source = gst_element_factory_make ("multifilesrc", NULL);
   decodebin = gst_element_factory_make ("decodebin", NULL);
-  videoconvert = gst_element_factory_make ("videoconvert", NULL);
+  //videoconvert = gst_element_factory_make ("videoconvert", NULL);
 
-/*
-  gst_bin_add_many (GST_BIN (bin), source, decodebin, videoconvert, NULL);
-
+  gst_bin_add_many (GST_BIN (bin), source, decodebin, NULL);
   gst_element_link_pads_full (source, "src", decodebin, "sink",
       GST_PAD_LINK_CHECK_NOTHING);
-
+/*
   gst_element_link_pads_full (decodebin, "src", videoconvert, "sink",
       GST_PAD_LINK_CHECK_NOTHING);
-
-
-  target = gst_element_get_static_pad (videoconvert, "src");
-
-  src = gst_ghost_pad_new ("src", target);
-  gst_element_add_pad (bin, src);
-  gst_object_unref (target);
-
 */
+
+  caps =
+      gst_caps_new_simple ("image/png", "framerate", GST_TYPE_FRACTION, 25,
+      1, NULL);
+  //gst_caps_from_string ("image/png,framerate=25/1")
+  g_object_set (source, "caps", caps, NULL);
 
   g_object_set (source, "location",
       ((GESMultiFileSource *) track_element)->location, NULL);
-
-  g_object_set (source, "caps",
-      gst_caps_from_string ("image/png,framerate=25/1"), NULL);
-
-  //GST_ERROR ("location %s", ((GESMultiFileSource *) track_element)->location);
 
   //g_signal_connect (G_OBJECT (source), "pad-added",
   //    G_CALLBACK (pad_added_cb), videoconvert);
@@ -155,9 +147,15 @@ ges_multi_file_source_create_source (GESTrackElement * track_element)
   g_object_set (capsfilter, "caps",
       gst_caps_from_string ("image/png,framerate=25/1"), NULL);
 */
-  bin =
-      ges_source_create_topbin ("multifilesrc", source, decodebin, videoconvert,
-      NULL);
+
+  //bin = ges_source_create_topbin ("multifilesrc", source, decodebin, videoconvert, NULL);
+
+/*
+  target = gst_element_get_static_pad (decodebin, "src");
+  src = gst_ghost_pad_new ("src", target);
+  gst_element_add_pad (bin, src);
+  gst_object_unref (target);
+*/
 
   return bin;
 }
