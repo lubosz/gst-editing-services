@@ -86,6 +86,7 @@ ges_multi_file_source_dispose (GObject * object)
   G_OBJECT_CLASS (ges_multi_file_source_parent_class)->dispose (object);
 }
 
+/*
 static void
 pad_added_cb (GstElement * timeline, GstPad * pad, GstElement * scale)
 {
@@ -106,11 +107,13 @@ pad_added_cb (GstElement * timeline, GstPad * pad, GstElement * scale)
 
   GST_ERROR ("pad failed to link properly");
 }
+*/
 
 static GstElement *
 ges_multi_file_source_create_source (GESTrackElement * track_element)
 {
-  GstElement *source, *decodebin, *videoconvert, *capsfilter, *bin;
+  //GstElement *source, *decodebin, *videoconvert, *capsfilter, *bin;
+  GstElement *source, *decodebin, *bin, *videoconvert;
   //GstPad *src, *target;
 
   //bin = GST_ELEMENT (gst_bin_new ("multi-image-bin"));
@@ -139,18 +142,22 @@ ges_multi_file_source_create_source (GESTrackElement * track_element)
   g_object_set (source, "location",
       ((GESMultiFileSource *) track_element)->location, NULL);
 
-  GST_ERROR ("location %s", ((GESMultiFileSource *) track_element)->location);
+  g_object_set (source, "caps",
+      gst_caps_from_string ("image/png,framerate=25/1"), NULL);
 
-  g_signal_connect (G_OBJECT (source), "pad-added",
-      G_CALLBACK (pad_added_cb), videoconvert);
+  //GST_ERROR ("location %s", ((GESMultiFileSource *) track_element)->location);
 
+  //g_signal_connect (G_OBJECT (source), "pad-added",
+  //    G_CALLBACK (pad_added_cb), videoconvert);
+
+/*
   capsfilter = gst_element_factory_make ("capsfilter", NULL);
   g_object_set (capsfilter, "caps",
       gst_caps_from_string ("image/png,framerate=25/1"), NULL);
-
+*/
   bin =
-      ges_source_create_topbin ("multifilesrc", source, capsfilter, decodebin,
-      videoconvert, NULL);
+      ges_source_create_topbin ("multifilesrc", source, decodebin, videoconvert,
+      NULL);
 
   return bin;
 }
