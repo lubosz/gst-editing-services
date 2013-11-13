@@ -279,7 +279,7 @@ ges_track_element_init (GESTrackElement * self)
   priv->bindings_hashtable = g_hash_table_new_full (g_str_hash, g_str_equal,
       g_free, NULL);
   priv->children_props =
-      g_hash_table_new_full ((GHashFunc) pspec_hash, pspec_equal,
+      g_hash_table_new_full ((GHashFunc) ges_pspec_hash, ges_pspec_equal,
       (GDestroyNotify) g_param_spec_unref, gst_object_unref);
 
 }
