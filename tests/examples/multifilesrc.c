@@ -17,20 +17,48 @@
  * Boston, MA 02110-1301, USA.
  */
 
+#include <stdlib.h>
 #include <ges/ges.h>
 
 /* A image sequence test */
 int
 main (int argc, gchar ** argv)
 {
+  GError *err = NULL;
+  GOptionContext *ctx;
   GESPipeline *pipeline;
   GESTimeline *timeline;
   GESMultiFileClip *clip;
-  //GESTestClip *clip;
   GESLayer *layer;
   GMainLoop *mainloop;
-  gchar *path;
   GESTrack *track;
+
+  gint duration = 10;
+  gchar *filepattern = NULL;
+
+  GOptionEntry options[] = {
+    {"duration", 'd', 0, G_OPTION_ARG_INT, &duration,
+        "duration to use from the file (in seconds, default:10s)", "seconds"},
+    {"filepattern", 'f', 0, G_OPTION_ARG_FILENAME, &filepattern,
+          "Pattern of the files. i.e. %04d.png or /foo/%04d.jpg",
+        "filepattern"},
+    {NULL}
+  };
+
+  ctx = g_option_context_new ("- Plays an image sequence");
+  g_option_context_add_main_entries (ctx, options, NULL);
+  g_option_context_add_group (ctx, gst_init_get_option_group ());
+
+  if (!g_option_context_parse (ctx, &argc, &argv, &err)) {
+    g_print ("Error initializing %s\n", err->message);
+    exit (1);
+  }
+
+  if (filepattern == NULL) {
+    g_print ("%s", g_option_context_get_help (ctx, TRUE, NULL));
+    exit (0);
+  }
+  g_option_context_free (ctx);
 
   gst_init (&argc, &argv);
   ges_init ();
@@ -43,17 +71,9 @@ main (int argc, gchar ** argv)
   if (!ges_timeline_add_layer (timeline, layer))
     return -1;
 
-  path =
-      g_strconcat
-      ("/home/bmonkey/workspace/ges/data/transparent/blender-cube/png/%04d.png",
-      NULL);
+  clip = ges_multi_file_clip_new (filepattern);
 
-  clip = ges_multi_file_clip_new_from_location (path);
-/*
-  clip = ges_test_clip_new();
-*/
-
-  g_object_set (clip, "duration", 4 * GST_SECOND, NULL);
+  g_object_set (clip, "duration", duration * GST_SECOND, NULL);
 
   ges_layer_add_clip (layer, GES_CLIP (clip));
 
@@ -64,16 +84,10 @@ main (int argc, gchar ** argv)
 
   gst_element_set_state (GST_ELEMENT (pipeline), GST_STATE_PLAYING);
 
-  GST_DEBUG_BIN_TO_DOT_FILE_WITH_TS (GST_BIN (pipeline),
-      GST_DEBUG_GRAPH_SHOW_ALL, "multi");
-
   mainloop = g_main_loop_new (NULL, FALSE);
 
   g_timeout_add_seconds (4, (GSourceFunc) g_main_loop_quit, mainloop);
   g_main_loop_run (mainloop);
-
-  GST_DEBUG_BIN_TO_DOT_FILE_WITH_TS (GST_BIN (pipeline),
-      GST_DEBUG_GRAPH_SHOW_ALL, "multi2");
 
   return 0;
 }
