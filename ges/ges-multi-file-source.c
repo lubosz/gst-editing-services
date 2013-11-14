@@ -29,9 +29,45 @@
 #include "ges-internal.h"
 #include "ges-track-element.h"
 #include "ges-multi-file-source.h"
+#include "ges-extractable.h"
 
-G_DEFINE_TYPE (GESMultiFileSource, ges_multi_file_source,
-    GES_TYPE_VIDEO_SOURCE);
+
+/* Extractable interface implementation */
+
+static gchar *
+ges_extractable_check_id (GType type, const gchar * id, GError ** error)
+{
+  return g_strdup (id);
+}
+
+/*
+static void
+extractable_set_asset (GESExtractable * self, GESAsset * asset)
+{
+  // FIXME That should go into #GESTrackElement, but
+  // some work is needed to make sure it works properly
+
+  if (ges_track_element_get_track_type (GES_TRACK_ELEMENT (self)) ==
+      GES_TRACK_TYPE_UNKNOWN) {
+    ges_track_element_set_track_type (GES_TRACK_ELEMENT (self),
+        ges_track_element_asset_get_track_type (GES_TRACK_ELEMENT_ASSET
+            (asset)));
+  }
+}
+*/
+
+static void
+ges_extractable_interface_init (GESExtractableInterface * iface)
+{
+  //iface->asset_type = GES_TYPE_URI_SOURCE_ASSET;
+  iface->check_id = ges_extractable_check_id;
+  //iface->set_asset = extractable_set_asset;
+}
+
+G_DEFINE_TYPE_WITH_CODE (GESMultiFileSource, ges_multi_file_source,
+    GES_TYPE_VIDEO_SOURCE,
+    G_IMPLEMENT_INTERFACE (GES_TYPE_EXTRACTABLE,
+        ges_extractable_interface_init));
 
 struct _GESMultiFileSourcePrivate
 {
@@ -42,7 +78,7 @@ struct _GESMultiFileSourcePrivate
 enum
 {
   PROP_0,
-  PROP_URI
+  PROP_LOCATION
 };
 
 static void
@@ -52,7 +88,7 @@ ges_multi_file_source_get_property (GObject * object, guint property_id,
   GESMultiFileSource *uriclip = GES_MULTI_FILE_SOURCE (object);
 
   switch (property_id) {
-    case PROP_URI:
+    case PROP_LOCATION:
       g_value_set_string (value, uriclip->location);
       break;
     default:
@@ -67,7 +103,7 @@ ges_multi_file_source_set_property (GObject * object, guint property_id,
   GESMultiFileSource *uriclip = GES_MULTI_FILE_SOURCE (object);
 
   switch (property_id) {
-    case PROP_URI:
+    case PROP_LOCATION:
       uriclip->location = g_value_dup_string (value);
       break;
     default:
@@ -143,7 +179,7 @@ ges_multi_file_source_class_init (GESMultiFileSourceClass * klass)
    *
    * The location of the file/resource to use.
    */
-  g_object_class_install_property (object_class, PROP_URI,
+  g_object_class_install_property (object_class, PROP_LOCATION,
       g_param_spec_string ("location", "LOCATION", "location of the resource",
           NULL, G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
   source_class->create_source = ges_multi_file_source_create_source;

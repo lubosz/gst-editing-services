@@ -34,21 +34,29 @@
 #include "ges-source-clip.h"
 #include "ges-track-element.h"
 #include "ges-multi-file-source.h"
+#include "ges-extractable.h"
 #include <string.h>
 
-G_DEFINE_TYPE (GESMultiFileClip, ges_multi_file_clip, GES_TYPE_SOURCE_CLIP);
+static void ges_extractable_interface_init (GESExtractableInterface * iface);
+
+#define parent_class ges_multi_file_clip_parent_class
+
+G_DEFINE_TYPE_WITH_CODE (GESMultiFileClip, ges_multi_file_clip,
+    GES_TYPE_SOURCE_CLIP,
+    G_IMPLEMENT_INTERFACE (GES_TYPE_EXTRACTABLE,
+        ges_extractable_interface_init));
+
+GESExtractableInterface *parent_extractable_iface;
 
 struct _GESMultiFileClipPrivate
 {
   gchar *location;
-  guint fps;
 };
 
 enum
 {
   PROP_0,
   PROP_LOCATION,
-  PROP_FPS,
 };
 
 static GESTrackElement
@@ -65,9 +73,6 @@ ges_multi_file_clip_get_property (GObject * object, guint property_id,
     case PROP_LOCATION:
       g_value_set_string (value, priv->location);
       break;
-    case PROP_FPS:
-      g_value_set_enum (value, priv->fps);
-      break;
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
   }
@@ -83,13 +88,117 @@ ges_multi_file_clip_set_property (GObject * object, guint property_id,
     case PROP_LOCATION:
       ges_multi_file_clip_set_location (uriclip, g_value_dup_string (value));
       break;
-    case PROP_FPS:
-      ges_multi_file_clip_set_fps (uriclip, g_value_get_int (value));
-      break;
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
   }
 }
+
+static gchar *
+extractable_check_id (GType type, const gchar * id)
+{
+/*
+  const gchar *testing_directory;
+
+  testing_directory = g_getenv ("GES_TESTING_ASSETS_DIRECTORY");
+
+  // Testing purposes, user can specify a directory to look up for script
+  if (testing_directory != NULL) {
+    gchar **tokens;
+    gchar *location = NULL;
+    guint i;
+
+    GST_DEBUG ("Checking if the testing directory contains needed media");
+
+    tokens = g_strsplit (id, "media", 2);
+    for (i = 0; tokens[i]; i++)
+      if (i == 1)
+        location = tokens[1];
+
+    if (location == NULL)
+      GST_WARNING ("The provided id doesn't have a media subdirectory");
+    else {
+      gchar *actual_id =
+          g_strconcat ("file://", testing_directory, "/media/", location, NULL);
+
+      if (gst_uri_is_valid (actual_id)) {
+        GST_DEBUG ("Returning new id %s instead of id %s", actual_id, id);
+        g_strfreev (tokens);
+        return (actual_id);
+      } else
+        GST_WARNING ("The constructed id %s was not valid, trying %s anyway",
+            actual_id, id);
+
+      g_free (actual_id);
+    }
+
+    g_strfreev (tokens);
+  }
+
+  if (gst_uri_is_valid (id))
+    return g_strdup (id);
+*/
+  return NULL;
+}
+
+static GParameter *
+extractable_get_parameters_from_id (const gchar * id, guint * n_params)
+{
+  GParameter *params = g_new0 (GParameter, 2);
+
+  params[0].name = "uri";
+  g_value_init (&params[0].value, G_TYPE_STRING);
+  g_value_set_string (&params[0].value, id);
+
+  *n_params = 1;
+
+  return params;
+}
+
+static gchar *
+extractable_get_id (GESExtractable * self)
+{
+  return g_strdup (GES_MULTI_FILE_CLIP (self)->priv->location);
+}
+
+/*
+static void
+extractable_set_asset (GESExtractable * self, GESAsset * asset)
+{
+  GESMultiFileClip *multifileclip = GES_MULTI_FILE_CLIP (self);
+  GESMultiFileClipAsset *filesource_asset = GES_MULTI_FILE_CLIP_ASSET (asset);
+  GESClip *clip = GES_CLIP (self);
+
+  if (GST_CLOCK_TIME_IS_VALID (GES_TIMELINE_ELEMENT_DURATION (clip)) == FALSE)
+    _set_duration0 (GES_TIMELINE_ELEMENT (multifileclip),
+        ges_multi_file_clip_asset_get_duration (filesource_asset));
+
+  ges_timeline_element_set_max_duration (GES_TIMELINE_ELEMENT (multifileclip),
+      ges_multi_file_clip_asset_get_duration (filesource_asset));
+
+  ges_uri_clip_set_is_image (multifileclip,
+      ges_multi_file_clip_asset_is_image (filesource_asset));
+
+  if (ges_clip_get_supported_formats (clip) == GES_TRACK_TYPE_UNKNOWN) {
+
+    ges_clip_set_supported_formats (clip,
+        ges_clip_asset_get_supported_formats
+        (GES_CLIP_ASSET (filesource_asset)));
+  }
+
+  GES_TIMELINE_ELEMENT (multifileclip)->asset = asset;
+}
+*/
+
+static void
+ges_extractable_interface_init (GESExtractableInterface * iface)
+{
+  //iface->asset_type = GES_TYPE_URI_CLIP_ASSET;
+  iface->check_id = (GESExtractableCheckId) extractable_check_id;
+  iface->get_parameters_from_id = extractable_get_parameters_from_id;
+  iface->get_id = extractable_get_id;
+  //iface->set_asset = extractable_set_asset;
+}
+
 
 static void
 ges_multi_file_clip_class_init (GESMultiFileClipClass * klass)
@@ -112,16 +221,6 @@ ges_multi_file_clip_class_init (GESMultiFileClipClass * klass)
           "Location of the Sequence", NULL,
           G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
 
-  /**
-   * GESMultiFileClip:fps:
-   *
-   * The fps of the sequence.
-   */
-  g_object_class_install_property (object_class, PROP_FPS,
-      g_param_spec_int ("fps", "Frames Per Second",
-          "FPS Caps", 1, 200, 25, G_PARAM_READWRITE | G_PARAM_CONSTRUCT));
-
-
   timobj_class->create_track_element = ges_multi_file_clip_create_track_element;
 }
 
@@ -131,7 +230,6 @@ ges_multi_file_clip_init (GESMultiFileClip * self)
   self->priv = G_TYPE_INSTANCE_GET_PRIVATE (self,
       GES_TYPE_MULTI_FILE_CLIP, GESMultiFileClipPrivate);
 
-  self->priv->fps = 0;
   GES_TIMELINE_ELEMENT (self)->duration = 0;
 }
 
@@ -146,67 +244,23 @@ ges_multi_file_clip_init (GESMultiFileClip * self)
 void
 ges_multi_file_clip_set_location (GESMultiFileClip * self, gchar * location)
 {
-  //GList *tmp;
+  if (GES_CONTAINER_CHILDREN (self)) {
+    /* FIXME handle this case properly */
+    GST_WARNING_OBJECT (self, "Can not change location when already"
+        "containing TrackElements");
+    return;
+  }
 
   self->priv->location = location;
-
-/*
-  for (tmp = GES_CONTAINER_CHILDREN (self); tmp; tmp = tmp->next) {
-    //GESTrackElement *trackelement = (GESTrackElement *) tmp->data;
-    //if (GES_IS_MULTI_FILE_SOURCE (trackelement))
-    //g_object_set ((GESVideoTestSource *) trackelement, "location",
-    //    location, NULL);
-  }
-*/
 }
 
 /**
- * ges_multi_file_clip_set_vpattern:
- * @self: the #GESMultiFileClip to set the pattern on
- * @vpattern: the #GESVideoTestPattern to use on @self
- *
- * Sets which video pattern to display on @self.
- *
- */
-void
-ges_multi_file_clip_set_fps (GESMultiFileClip * self, guint fps)
-{
-  //GList *tmp;
-
-  self->priv->fps = fps;
-/*
-  for (tmp = GES_CONTAINER_CHILDREN (self); tmp; tmp = tmp->next) {
-    GESTrackElement *trackelement = (GESTrackElement *) tmp->data;
-    if (GES_IS_MULTI_FILE_SOURCE (trackelement))
-    //ges_multi_file_source_set_pattern (
-    //    (GESMultiFileSource *) trackelement, vpattern);
-  }
-*/
-}
-
-
-
-/**
- * ges_multi_file_clip_get_vpattern:
+ * ges_multi_file_clip_get_location:
  * @self: a #GESMultiFileClip
  *
- * Get the #GESVideoTestPattern which is applied on @self.
+ * Get the location @self generates.
  *
- * Returns: The #GESVideoTestPattern which is applied on @self.
- */
-guint
-ges_multi_file_clip_get_fps (GESMultiFileClip * self)
-{
-  return self->priv->fps;
-}
-
-/**
- * ges_multi_file_clip_get_frequency:
- * @self: a #GESMultiFileClip
- *
- * Get the frequency @self generates.
- *
- * Returns: The frequency @self generates. See audiotestsrc element.
+ * Returns: The location @self generates.
  */
 char *
 ges_multi_file_clip_get_location (GESMultiFileClip * self)
@@ -225,8 +279,6 @@ ges_multi_file_clip_create_track_element (GESClip * clip, GESTrackType type)
 
   if (type == GES_TRACK_TYPE_VIDEO) {
     res = (GESTrackElement *) ges_multi_file_source_new (priv->location);
-    //ges_multi_file_source_set_fps (
-    //    (GESVideoTestSource *) res, priv->fps);
   }
 
   return res;

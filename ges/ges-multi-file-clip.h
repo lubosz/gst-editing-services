@@ -79,12 +79,8 @@ struct _GESMultiFileClipClass {
 GType ges_multi_file_clip_get_type (void);
 
 void
-ges_multi_file_clip_set_fps (GESMultiFileClip * self, guint fps);
-
-void
 ges_multi_file_clip_set_location (GESMultiFileClip * self, gchar * location);
 
-guint ges_multi_file_clip_get_fps (GESMultiFileClip * self);
 gchar * ges_multi_file_clip_get_location (GESMultiFileClip * self);
 
 GESMultiFileClip* ges_multi_file_clip_new (void);
