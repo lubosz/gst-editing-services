@@ -96,48 +96,13 @@ ges_multi_file_clip_set_property (GObject * object, guint property_id,
 static gchar *
 extractable_check_id (GType type, const gchar * id)
 {
-/*
-  const gchar *testing_directory;
-
-  testing_directory = g_getenv ("GES_TESTING_ASSETS_DIRECTORY");
-
-  // Testing purposes, user can specify a directory to look up for script
-  if (testing_directory != NULL) {
-    gchar **tokens;
-    gchar *location = NULL;
-    guint i;
-
-    GST_DEBUG ("Checking if the testing directory contains needed media");
-
-    tokens = g_strsplit (id, "media", 2);
-    for (i = 0; tokens[i]; i++)
-      if (i == 1)
-        location = tokens[1];
-
-    if (location == NULL)
-      GST_WARNING ("The provided id doesn't have a media subdirectory");
-    else {
-      gchar *actual_id =
-          g_strconcat ("file://", testing_directory, "/media/", location, NULL);
-
-      if (gst_uri_is_valid (actual_id)) {
-        GST_DEBUG ("Returning new id %s instead of id %s", actual_id, id);
-        g_strfreev (tokens);
-        return (actual_id);
-      } else
-        GST_WARNING ("The constructed id %s was not valid, trying %s anyway",
-            actual_id, id);
-
-      g_free (actual_id);
-    }
-
-    g_strfreev (tokens);
+  if (gst_uri_is_valid (id)) {
+    GST_ERROR
+        ("MultiFileClip does not take uris as parameter, but location patterns: %s",
+        id);
+    return NULL;
   }
-
-  if (gst_uri_is_valid (id))
-    return g_strdup (id);
-*/
-  return NULL;
+  return g_strdup (id);
 }
 
 static GParameter *
@@ -145,7 +110,7 @@ extractable_get_parameters_from_id (const gchar * id, guint * n_params)
 {
   GParameter *params = g_new0 (GParameter, 2);
 
-  params[0].name = "uri";
+  params[0].name = "location";
   g_value_init (&params[0].value, G_TYPE_STRING);
   g_value_set_string (&params[0].value, id);
 
@@ -160,43 +125,12 @@ extractable_get_id (GESExtractable * self)
   return g_strdup (GES_MULTI_FILE_CLIP (self)->priv->location);
 }
 
-/*
-static void
-extractable_set_asset (GESExtractable * self, GESAsset * asset)
-{
-  GESMultiFileClip *multifileclip = GES_MULTI_FILE_CLIP (self);
-  GESMultiFileClipAsset *filesource_asset = GES_MULTI_FILE_CLIP_ASSET (asset);
-  GESClip *clip = GES_CLIP (self);
-
-  if (GST_CLOCK_TIME_IS_VALID (GES_TIMELINE_ELEMENT_DURATION (clip)) == FALSE)
-    _set_duration0 (GES_TIMELINE_ELEMENT (multifileclip),
-        ges_multi_file_clip_asset_get_duration (filesource_asset));
-
-  ges_timeline_element_set_max_duration (GES_TIMELINE_ELEMENT (multifileclip),
-      ges_multi_file_clip_asset_get_duration (filesource_asset));
-
-  ges_uri_clip_set_is_image (multifileclip,
-      ges_multi_file_clip_asset_is_image (filesource_asset));
-
-  if (ges_clip_get_supported_formats (clip) == GES_TRACK_TYPE_UNKNOWN) {
-
-    ges_clip_set_supported_formats (clip,
-        ges_clip_asset_get_supported_formats
-        (GES_CLIP_ASSET (filesource_asset)));
-  }
-
-  GES_TIMELINE_ELEMENT (multifileclip)->asset = asset;
-}
-*/
-
 static void
 ges_extractable_interface_init (GESExtractableInterface * iface)
 {
-  //iface->asset_type = GES_TYPE_URI_CLIP_ASSET;
   iface->check_id = (GESExtractableCheckId) extractable_check_id;
   iface->get_parameters_from_id = extractable_get_parameters_from_id;
   iface->get_id = extractable_get_id;
-  //iface->set_asset = extractable_set_asset;
 }
 
 
