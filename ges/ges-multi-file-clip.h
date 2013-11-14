@@ -83,8 +83,7 @@ ges_multi_file_clip_set_location (GESMultiFileClip * self, gchar * location);
 
 gchar * ges_multi_file_clip_get_location (GESMultiFileClip * self);
 
-GESMultiFileClip* ges_multi_file_clip_new (void);
-GESMultiFileClip* ges_multi_file_clip_new_from_location(gchar * location);
+GESMultiFileClip* ges_multi_file_clip_new (gchar * location);
 
 G_END_DECLS
 

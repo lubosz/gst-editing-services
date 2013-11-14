@@ -96,11 +96,21 @@ ges_multi_file_clip_set_property (GObject * object, guint property_id,
 static gchar *
 extractable_check_id (GType type, const gchar * id)
 {
+  gchar *location;
+
   if (gst_uri_is_valid (id)) {
-    GST_ERROR
+    GST_WARNING
         ("MultiFileClip does not take uris as parameter, but location patterns: %s",
         id);
-    return NULL;
+    location = gst_uri_get_location (id);
+
+    if (location != NULL) {
+      return location;
+    } else {
+      GST_WARNING ("No location found in uri: %s", id);
+      g_free (location);
+      return NULL;
+    }
   }
   return g_strdup (id);
 }
@@ -220,35 +230,23 @@ ges_multi_file_clip_create_track_element (GESClip * clip, GESTrackType type)
 
 /**
  * ges_multi_file_clip_new:
- *
+ * @location: the location from which to create the #GESMultiFileClip
  * Creates a new #GESMultiFileClip.
  *
  * Returns: The newly created #GESMultiFileClip, or NULL if there was an
  * error.
  */
 GESMultiFileClip *
-ges_multi_file_clip_new (void)
+ges_multi_file_clip_new (gchar * location)
 {
   GESMultiFileClip *new_clip;
-  GESAsset *asset = ges_asset_request (GES_TYPE_MULTI_FILE_CLIP, NULL, NULL);
+  GESAsset *asset =
+      ges_asset_request (GES_TYPE_MULTI_FILE_CLIP, location, NULL);
 
   new_clip = GES_MULTI_FILE_CLIP (ges_asset_extract (asset, NULL));
   gst_object_unref (asset);
 
-  return new_clip;
-}
+  new_clip->priv->location = location;
 
-/**
- * ges_multi_file_clip_new_for_nick:
- * @nick: the nickname for which to create the #GESMultiFileClip
- *
- * Creates a new #GESMultiFileClip for the provided @nick.
- *
- * Returns: The newly created #GESMultiFileClip, or NULL if there was an
- * error.
- */
-GESMultiFileClip *
-ges_multi_file_clip_new_from_location (gchar * location)
-{
-  return g_object_new (GES_TYPE_MULTI_FILE_CLIP, "location", location, NULL);
+  return new_clip;
 }
