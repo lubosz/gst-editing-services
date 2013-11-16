@@ -25,7 +25,6 @@
  * Outputs the video stream from a given image sequence. The start frame
  * chosen will be determined by the in-point property on the track element.
  */
-
 #include "ges-internal.h"
 #include "ges-track-element.h"
 #include "ges-multi-file-source.h"
@@ -40,28 +39,10 @@ ges_extractable_check_id (GType type, const gchar * id, GError ** error)
   return g_strdup (id);
 }
 
-/*
-static void
-extractable_set_asset (GESExtractable * self, GESAsset * asset)
-{
-  // FIXME That should go into #GESTrackElement, but
-  // some work is needed to make sure it works properly
-
-  if (ges_track_element_get_track_type (GES_TRACK_ELEMENT (self)) ==
-      GES_TRACK_TYPE_UNKNOWN) {
-    ges_track_element_set_track_type (GES_TRACK_ELEMENT (self),
-        ges_track_element_asset_get_track_type (GES_TRACK_ELEMENT_ASSET
-            (asset)));
-  }
-}
-*/
-
 static void
 ges_extractable_interface_init (GESExtractableInterface * iface)
 {
-  //iface->asset_type = GES_TYPE_URI_SOURCE_ASSET;
   iface->check_id = ges_extractable_check_id;
-  //iface->set_asset = extractable_set_asset;
 }
 
 G_DEFINE_TYPE_WITH_CODE (GESMultiFileSource, ges_multi_file_source,

@@ -108,7 +108,6 @@ extractable_check_id (GType type, const gchar * id)
       return location;
     } else {
       GST_WARNING ("No location found in uri: %s", id);
-      g_free (location);
       return NULL;
     }
   }
@@ -245,8 +244,6 @@ ges_multi_file_clip_new (gchar * location)
 
   new_clip = GES_MULTI_FILE_CLIP (ges_asset_extract (asset, NULL));
   gst_object_unref (asset);
-
-  new_clip->priv->location = location;
 
   return new_clip;
 }
