@@ -117,14 +117,32 @@ pad_added_cb (GstElement * decodebin, GstPad * pad, GstElement * bin)
 static GstElement *
 ges_multi_file_source_create_source (GESTrackElement * track_element)
 {
-  GstCaps *caps;
   GESMultiFileSource *self;
   GstElement *bin, *src, *decodebin;
-
-  caps = gst_caps_new_simple ("image/png", "framerate",
-      GST_TYPE_FRACTION, 25, 1, NULL);
+  gchar *first_file;
+  GstCaps *disc_caps;
+  GstDiscoverer *discoverer;
+  GstDiscovererInfo *info;
+  GstDiscovererStreamInfo *stream_info;
+  GError **err = NULL;
+  gchar *uri;
+  GValue fps = G_VALUE_INIT;
+  GstCaps *caps;
 
   self = (GESMultiFileSource *) track_element;
+
+  first_file = g_strdup_printf (self->location, 1);
+  uri = gst_filename_to_uri (first_file, err);
+
+  discoverer = gst_discoverer_new (GST_SECOND, NULL);
+  info = gst_discoverer_discover_uri (discoverer, uri, err);
+  stream_info = gst_discoverer_info_get_stream_info (info);
+  disc_caps = gst_discoverer_stream_info_get_caps (stream_info);
+
+  caps = gst_caps_copy (disc_caps);
+  g_value_init (&fps, GST_TYPE_FRACTION);
+  gst_value_set_fraction (&fps, 25, 1);
+  gst_caps_set_value (caps, "framerate", &fps);
 
   bin = GST_ELEMENT (gst_bin_new ("multi-image-bin"));
 
