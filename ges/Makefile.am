@@ -27,7 +27,6 @@ libges_@GST_API_VERSION@_la_SOURCES = 		\
 	ges-title-clip.c		\
 	ges-overlay-clip.c			\
 	ges-text-overlay-clip.c		\
-	ges-multi-file-clip.c		\
 	ges-track.c				\
 	ges-audio-track.c \
 	ges-video-track.c \
@@ -107,7 +106,6 @@ libges_@GST_API_VERSION@include_HEADERS = 	\
 	ges-audio-uri-source.h			\
 	ges-image-source.h		\
   ges-multi-file-source.h		\
-  ges-multi-file-clip.h		\
 	ges-transition.h			\
 	ges-audio-transition.h		\
 	ges-video-transition.h		\
