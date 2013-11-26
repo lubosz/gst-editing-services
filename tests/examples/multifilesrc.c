@@ -28,7 +28,7 @@ main (int argc, gchar ** argv)
   GOptionContext *ctx;
   GESPipeline *pipeline;
   GESTimeline *timeline;
-  GESMultiFileClip *clip;
+  GESAsset *asset;
   GESLayer *layer;
   GMainLoop *mainloop;
   GESTrack *track;
@@ -39,9 +39,9 @@ main (int argc, gchar ** argv)
   GOptionEntry options[] = {
     {"duration", 'd', 0, G_OPTION_ARG_INT, &duration,
         "duration to use from the file (in seconds, default:10s)", "seconds"},
-    {"filepattern", 'f', 0, G_OPTION_ARG_FILENAME, &filepattern,
-          "Pattern of the files. i.e. %04d.png or /foo/%04d.jpg",
-        "filepattern"},
+    {"pattern-url", 'u', 0, G_OPTION_ARG_FILENAME, &filepattern,
+          "Pattern of the files. i.e. multifile:///foo/%04d.jpg",
+        "pattern-url"},
     {NULL}
   };
 
@@ -71,11 +71,10 @@ main (int argc, gchar ** argv)
   if (!ges_timeline_add_layer (timeline, layer))
     return -1;
 
-  clip = ges_multi_file_clip_new (filepattern);
+  asset = GES_ASSET (ges_uri_clip_asset_request_sync (filepattern, &err));
 
-  g_object_set (clip, "duration", duration * GST_SECOND, NULL);
-
-  ges_layer_add_clip (layer, GES_CLIP (clip));
+  ges_layer_add_asset (layer, asset, 0, 0, 5 * GST_SECOND,
+      GES_TRACK_TYPE_VIDEO);
 
   pipeline = ges_pipeline_new ();
 
