@@ -1,6 +1,5 @@
 /* GStreamer Editing Services
- * Copyright (C) 2009 Edward Hervey <edward.hervey@collabora.co.uk>
- *               2009 Nokia Corporation
+ * Copyright (C) 2013 Lubosz Sarnecki <lubosz@gmail.com>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public

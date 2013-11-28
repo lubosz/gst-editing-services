@@ -476,6 +476,8 @@ ges_uri_clip_asset_request_sync (const gchar * uri, GError ** error)
     first_file_uri = gst_filename_to_uri (first_file, &lerror);
     info = gst_discoverer_discover_uri (discoverer, first_file_uri, &lerror);
     GST_DEBUG ("Got multifile uri. Discovering first file %s", first_file_uri);
+    g_free (first_file_uri);
+    g_free (first_file);
   } else {
     info = gst_discoverer_discover_uri (discoverer, uri, &lerror);
   }

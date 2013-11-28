@@ -1,6 +1,5 @@
 /* GStreamer Editing Services
- * Copyright (C) 2009 Edward Hervey <edward.hervey@collabora.co.uk>
- *               2009 Nokia Corporation
+ * Copyright (C) 2013 Lubosz Sarnecki <lubosz@gmail.com>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -21,7 +20,7 @@
 /**
  * SECTION:ges-multi-file-source
  * @short_description: outputs the video stream from a sequence of images.
- * 
+ *
  * Outputs the video stream from a given image sequence. The start frame
  * chosen will be determined by the in-point property on the track element.
  */
@@ -132,10 +131,12 @@ ges_multi_file_source_create_source (GESTrackElement * track_element)
 
   if (asset != NULL) {
     stream_info = ges_uri_source_asset_get_stream_info (asset);
+    g_assert (stream_info);
     disc_caps = gst_discoverer_stream_info_get_caps (stream_info);
     caps = gst_caps_copy (disc_caps);
-    g_assert (stream_info);
     GST_DEBUG ("Got some nice caps %s", gst_caps_to_string (disc_caps));
+    gst_object_unref (stream_info);
+    //gst_object_unref(disc_caps);
   } else {
     caps = gst_caps_new_empty ();
     GST_WARNING ("Could not extract asset.");
