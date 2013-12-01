@@ -75,5 +75,7 @@ GType ges_multi_file_source_get_type (void);
 
 GESMultiFileSource *ges_multi_file_source_new (gchar * uri);
 
+#define GES_MULTI_FILE_URI_PREFIX "multifile://"
+
 G_END_DECLS
 #endif /* _GES_MULTI_FILE_SOURCE */

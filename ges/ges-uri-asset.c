@@ -472,7 +472,7 @@ ges_uri_clip_asset_request_sync (const gchar * uri, GError ** error)
       "extractable-type", GES_TYPE_URI_CLIP, NULL);
   discoverer = GES_URI_CLIP_ASSET_GET_CLASS (asset)->sync_discoverer;
 
-  if (g_str_has_prefix (uri, "multifile://")) {
+  if (g_str_has_prefix (uri, GES_MULTI_FILE_URI_PREFIX)) {
     uri_data = ges_multi_file_uri_new (uri);
     first_file = g_strdup_printf (uri_data->location, uri_data->start);
     first_file_uri = gst_filename_to_uri (first_file, &lerror);
@@ -566,7 +566,7 @@ _extract (GESAsset * asset, GError ** error)
     return NULL;
   }
 
-  if (g_str_has_prefix (priv->uri, "multifile://")) {
+  if (g_str_has_prefix (priv->uri, GES_MULTI_FILE_URI_PREFIX)) {
     trackelement =
         GES_TRACK_ELEMENT (ges_multi_file_source_new (g_strdup (priv->uri)));
   } else if (GST_IS_DISCOVERER_VIDEO_INFO (priv->sinfo)

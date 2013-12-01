@@ -123,10 +123,7 @@ ges_multi_file_uri_new (const gchar * uri)
   gchar *indices;
   int charpos;
   GESMultiFileURI *uri_data;
-  const gchar *uri_prefix = "multifile://";
-  const int prefix_size = strlen (uri_prefix);
-
-  g_print ("prefixsize %d\n", prefix_size);
+  const int prefix_size = strlen (GES_MULTI_FILE_URI_PREFIX);
 
   uri_data = malloc (sizeof (GESMultiFileURI));
 
