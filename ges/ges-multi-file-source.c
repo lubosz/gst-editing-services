@@ -115,6 +115,12 @@ pad_added_cb (GstElement * decodebin, GstPad * pad, GstElement * bin)
   gst_element_add_pad (bin, srcpad);
 }
 
+/**
+  * ges_multi_file_uri_new: (skip)
+  *
+  * Reads start/stop index and location from a multifile uri.
+  *
+  */
 GESMultiFileURI *
 ges_multi_file_uri_new (const gchar * uri)
 {
@@ -222,7 +228,17 @@ ges_multi_file_source_class_init (GESMultiFileSourceClass * klass)
   /**
    * GESMultiFileSource:uri:
    *
-   * The uri of the file/resource to use.
+   * The uri of the file/resource to use. You can set a start index,
+   * a stop index and a sequence pattern.
+   * The format is &lt;multifile://start:stop\@location-pattern&gt;.
+   * The pattern uses printf string formating.
+   *
+   * Example uris:
+   *
+   * multifile:///home/you/image\%03d.jpg
+   *
+   * multifile://20:50@/home/you/sequence/\%04d.png
+   *
    */
   g_object_class_install_property (object_class, PROP_URI,
       g_param_spec_string ("uri", "URI", "multifile uri",
