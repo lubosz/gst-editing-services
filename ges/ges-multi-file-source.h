@@ -25,34 +25,28 @@
 #include <ges/ges-video-source.h>
 
 G_BEGIN_DECLS
-
 #define GES_TYPE_MULTI_FILE_SOURCE ges_multi_file_source_get_type()
-
 #define GES_MULTI_FILE_SOURCE(obj) \
   (G_TYPE_CHECK_INSTANCE_CAST ((obj), GES_TYPE_MULTI_FILE_SOURCE, GESMultiFileSource))
-
 #define ges_multi_file_source_CLASS(klass) \
   (G_TYPE_CHECK_CLASS_CAST ((klass), GES_TYPE_MULTI_FILE_SOURCE, GESMultiFileSourceClass))
-
 #define GES_IS_MULTI_FILE_SOURCE(obj) \
   (G_TYPE_CHECK_INSTANCE_TYPE ((obj), GES_TYPE_MULTI_FILE_SOURCE))
-
 #define GES_IS_MULTI_FILE_SOURCE_CLASS(klass) \
   (G_TYPE_CHECK_CLASS_TYPE ((klass), GES_TYPE_MULTI_FILE_SOURCE))
-
 #define ges_multi_file_source_GET_CLASS(obj) \
   (G_TYPE_INSTANCE_GET_CLASS ((obj), GES_TYPE_MULTI_FILE_SOURCE, GESMultiFileSourceClass))
-
 typedef struct _GESMultiFileSourcePrivate GESMultiFileSourcePrivate;
 
 /**
  * GESMultiFileSource:
  */
-struct _GESMultiFileSource {
-  /*< private >*/
+struct _GESMultiFileSource
+{
+  /*< private > */
   GESVideoSource parent;
 
-  gchar *location;
+  gchar *uri;
 
   GESMultiFileSourcePrivate *priv;
 
@@ -60,18 +54,26 @@ struct _GESMultiFileSource {
   gpointer _ges_reserved[GES_PADDING];
 };
 
-struct _GESMultiFileSourceClass {
+struct _GESMultiFileSourceClass
+{
   GESVideoSourceClass parent_class;
 
   /* Padding for API extension */
   gpointer _ges_reserved[GES_PADDING];
 };
 
+typedef struct GESMultiFileURI
+{
+  gchar *location;
+  gint start;
+  gint end;
+} GESMultiFileURI;
+
+GESMultiFileURI *ges_multi_file_uri_new (const gchar * uri);
+
 GType ges_multi_file_source_get_type (void);
 
-GESMultiFileSource* ges_multi_file_source_new (gchar *location);
+GESMultiFileSource *ges_multi_file_source_new (gchar * uri);
 
 G_END_DECLS
-
 #endif /* _GES_MULTI_FILE_SOURCE */
-

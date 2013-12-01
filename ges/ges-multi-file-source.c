@@ -24,6 +24,8 @@
  * Outputs the video stream from a given image sequence. The start frame
  * chosen will be determined by the in-point property on the track element.
  */
+#include <stdlib.h>
+#include <string.h>
 #include "ges-internal.h"
 #include "ges-track-element.h"
 #include "ges-multi-file-source.h"
@@ -58,7 +60,7 @@ struct _GESMultiFileSourcePrivate
 enum
 {
   PROP_0,
-  PROP_LOCATION
+  PROP_URI
 };
 
 static void
@@ -68,8 +70,8 @@ ges_multi_file_source_get_property (GObject * object, guint property_id,
   GESMultiFileSource *uriclip = GES_MULTI_FILE_SOURCE (object);
 
   switch (property_id) {
-    case PROP_LOCATION:
-      g_value_set_string (value, uriclip->location);
+    case PROP_URI:
+      g_value_set_string (value, uriclip->uri);
       break;
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
@@ -83,8 +85,8 @@ ges_multi_file_source_set_property (GObject * object, guint property_id,
   GESMultiFileSource *uriclip = GES_MULTI_FILE_SOURCE (object);
 
   switch (property_id) {
-    case PROP_LOCATION:
-      uriclip->location = g_value_dup_string (value);
+    case PROP_URI:
+      uriclip->uri = g_value_dup_string (value);
       break;
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
@@ -96,8 +98,8 @@ ges_multi_file_source_dispose (GObject * object)
 {
   GESMultiFileSource *uriclip = GES_MULTI_FILE_SOURCE (object);
 
-  if (uriclip->location)
-    g_free (uriclip->location);
+  if (uriclip->uri)
+    g_free (uriclip->uri);
 
   G_OBJECT_CLASS (ges_multi_file_source_parent_class)->dispose (object);
 }
@@ -113,6 +115,48 @@ pad_added_cb (GstElement * decodebin, GstPad * pad, GstElement * bin)
   gst_element_add_pad (bin, srcpad);
 }
 
+GESMultiFileURI *
+ges_multi_file_uri_new (const gchar * uri)
+{
+  gchar *colon = NULL;
+  gchar *at = NULL;
+  gchar *indices;
+  int charpos;
+  GESMultiFileURI *uri_data;
+  const gchar *uri_prefix = "multifile://";
+  const int prefix_size = strlen (uri_prefix);
+
+  g_print ("prefixsize %d\n", prefix_size);
+
+  uri_data = malloc (sizeof (GESMultiFileURI));
+
+  uri_data->start = 0;
+  uri_data->end = -1;
+
+  at = strchr (uri, '@');
+  if (at != NULL) {
+    charpos = (int) (at - uri);
+    indices = g_strdup_printf ("%.*s", charpos, uri);
+    indices = &indices[prefix_size];
+    colon = strchr (indices, ':');
+    if (colon != NULL) {
+      charpos = (int) (colon - indices);
+      uri_data->end = atoi (colon + 1);
+      uri_data->start = atoi (g_strdup_printf ("%.*s", charpos, indices));
+      GST_DEBUG ("indices start: %d end %d\n", uri_data->start, uri_data->end);
+    } else {
+      GST_ERROR
+          ("Malformated multifile uri. You are using '@' and are missing ':'");
+    }
+    uri_data->location = at + 1;
+  } else {
+    uri_data->location = g_strdup (&uri[prefix_size]);
+  }
+  GST_DEBUG ("location: %s\n", uri_data->location);
+
+  return uri_data;
+}
+
 static GstElement *
 ges_multi_file_source_create_source (GESTrackElement * track_element)
 {
@@ -123,6 +167,7 @@ ges_multi_file_source_create_source (GESTrackElement * track_element)
   GValue fps = G_VALUE_INIT;
   GstCaps *caps;
   GESUriSourceAsset *asset;
+  GESMultiFileURI *uri_data;
 
   self = (GESMultiFileSource *) track_element;
 
@@ -136,7 +181,6 @@ ges_multi_file_source_create_source (GESTrackElement * track_element)
     caps = gst_caps_copy (disc_caps);
     GST_DEBUG ("Got some nice caps %s", gst_caps_to_string (disc_caps));
     gst_object_unref (stream_info);
-    //gst_object_unref(disc_caps);
   } else {
     caps = gst_caps_new_empty ();
     GST_WARNING ("Could not extract asset.");
@@ -147,11 +191,14 @@ ges_multi_file_source_create_source (GESTrackElement * track_element)
   gst_caps_set_value (caps, "framerate", &fps);
 
   bin = GST_ELEMENT (gst_bin_new ("multi-image-bin"));
-
   src = gst_element_factory_make ("multifilesrc", NULL);
-  decodebin = gst_element_factory_make ("decodebin", NULL);
 
-  g_object_set (src, "caps", caps, "location", self->location, NULL);
+  uri_data = ges_multi_file_uri_new (self->uri);
+  g_object_set (src, "start-index", uri_data->start, "stop-index",
+      uri_data->end, "caps", caps, "location", uri_data->location, NULL);
+  g_free (uri_data);
+
+  decodebin = gst_element_factory_make ("decodebin", NULL);
 
   gst_bin_add_many (GST_BIN (bin), src, decodebin, NULL);
   gst_element_link_pads_full (src, "src", decodebin, "sink",
@@ -176,12 +223,12 @@ ges_multi_file_source_class_init (GESMultiFileSourceClass * klass)
   object_class->dispose = ges_multi_file_source_dispose;
 
   /**
-   * GESMultiFileSource:location:
+   * GESMultiFileSource:uri:
    *
-   * The location of the file/resource to use.
+   * The uri of the file/resource to use.
    */
-  g_object_class_install_property (object_class, PROP_LOCATION,
-      g_param_spec_string ("location", "LOCATION", "location of the resource",
+  g_object_class_install_property (object_class, PROP_URI,
+      g_param_spec_string ("uri", "URI", "multifile uri",
           NULL, G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
   source_class->create_source = ges_multi_file_source_create_source;
 }
@@ -195,15 +242,15 @@ ges_multi_file_source_init (GESMultiFileSource * self)
 
 /**
  * ges_multi_file_source_new:
- * @location: the URI the source should control
+ * @uri: the URI the source should control
  *
- * Creates a new #GESMultiFileSource for the provided @location.
+ * Creates a new #GESMultiFileSource for the provided @uri.
  *
  * Returns: A new #GESMultiFileSource.
  */
 GESMultiFileSource *
-ges_multi_file_source_new (gchar * location)
+ges_multi_file_source_new (gchar * uri)
 {
-  return g_object_new (GES_TYPE_MULTI_FILE_SOURCE, "location", location,
+  return g_object_new (GES_TYPE_MULTI_FILE_SOURCE, "uri", uri,
       "track-type", GES_TRACK_TYPE_VIDEO, NULL);
 }

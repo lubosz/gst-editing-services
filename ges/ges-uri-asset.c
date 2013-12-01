@@ -453,6 +453,7 @@ ges_uri_clip_asset_request_sync (const gchar * uri, GError ** error)
   GstDiscoverer *discoverer;
   GESUriClipAsset *asset;
   gchar *first_file, *first_file_uri;
+  GESMultiFileURI *uri_data;
 
   asset = GES_URI_CLIP_ASSET (ges_asset_request (GES_TYPE_URI_CLIP, uri,
           &lerror));
@@ -472,10 +473,12 @@ ges_uri_clip_asset_request_sync (const gchar * uri, GError ** error)
   discoverer = GES_URI_CLIP_ASSET_GET_CLASS (asset)->sync_discoverer;
 
   if (g_str_has_prefix (uri, "multifile://")) {
-    first_file = g_strdup_printf (&uri[12], 1);
+    uri_data = ges_multi_file_uri_new (uri);
+    first_file = g_strdup_printf (uri_data->location, uri_data->start);
     first_file_uri = gst_filename_to_uri (first_file, &lerror);
     info = gst_discoverer_discover_uri (discoverer, first_file_uri, &lerror);
     GST_DEBUG ("Got multifile uri. Discovering first file %s", first_file_uri);
+    g_free (uri_data);
     g_free (first_file_uri);
     g_free (first_file);
   } else {
@@ -565,8 +568,7 @@ _extract (GESAsset * asset, GError ** error)
 
   if (g_str_has_prefix (priv->uri, "multifile://")) {
     trackelement =
-        GES_TRACK_ELEMENT (ges_multi_file_source_new (g_strdup (&priv->uri
-                [12])));
+        GES_TRACK_ELEMENT (ges_multi_file_source_new (g_strdup (priv->uri)));
   } else if (GST_IS_DISCOVERER_VIDEO_INFO (priv->sinfo)
       && gst_discoverer_video_info_is_image ((GstDiscovererVideoInfo *)
           priv->sinfo))
