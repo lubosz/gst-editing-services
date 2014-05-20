@@ -540,6 +540,31 @@ ges_uri_clip_asset_get_stream_assets (GESUriClipAsset * self)
   return self->priv->asset_trackfilesources;
 }
 
+gint
+ges_uri_clip_asset_get_structure_int (GESUriClipAsset * asset, const char *name)
+{
+  GstDiscovererInfo *info = ges_uri_clip_asset_get_info (asset);
+  GstDiscovererStreamInfo *stream_info =
+      gst_discoverer_info_get_stream_info (info);
+  GstCaps *caps = gst_discoverer_stream_info_get_caps (stream_info);
+  GstStructure *structure = gst_caps_get_structure (caps, 0);
+  gint value;
+  gst_structure_get_int (structure, name, &value);
+  return value;
+}
+
+gint
+ges_uri_clip_asset_get_width (GESUriClipAsset * asset)
+{
+  return ges_uri_clip_asset_get_structure_int (asset, "width");
+}
+
+gint
+ges_uri_clip_asset_get_height (GESUriClipAsset * asset)
+{
+  return ges_uri_clip_asset_get_structure_int (asset, "height");
+}
+
 /*****************************************************************
  *            GESUriSourceAsset implementation             *
  *****************************************************************/

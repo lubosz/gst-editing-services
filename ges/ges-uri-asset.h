@@ -79,6 +79,10 @@ void ges_uri_clip_asset_class_set_timeout           (GESUriClipAssetClass *klass
                                                      GstClockTime timeout);
 const GList * ges_uri_clip_asset_get_stream_assets  (GESUriClipAsset *self);
 
+gint ges_uri_clip_asset_get_structure_int (GESUriClipAsset * asset, const char *name);
+gint ges_uri_clip_asset_get_width (GESUriClipAsset * asset);
+gint ges_uri_clip_asset_get_height (GESUriClipAsset * asset);
+
 #define GES_TYPE_URI_SOURCE_ASSET ges_uri_source_asset_get_type()
 #define GES_URI_SOURCE_ASSET(obj) \
     (G_TYPE_CHECK_INSTANCE_CAST ((obj), GES_TYPE_URI_SOURCE_ASSET, GESUriSourceAsset))

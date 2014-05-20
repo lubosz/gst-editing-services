@@ -134,8 +134,8 @@ getClips (JsonReader * reader, GESLayer * layer, GESTrackType type,
         GESUriClipAsset *asset =
             GES_URI_CLIP_ASSET (ges_extractable_get_asset (GES_EXTRACTABLE
                 (clip)));
-        guint width = ges_asset_get_width (asset);
-        guint height = ges_asset_get_height (asset);
+        guint width = ges_uri_clip_asset_get_width (asset);
+        guint height = ges_uri_clip_asset_get_height (asset);
 
         if (width != 0 && height != 0) {
           double dw = width * size;

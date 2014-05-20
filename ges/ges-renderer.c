@@ -70,31 +70,6 @@ ges_renderer_get_absolute_path (const char *rel_path)
   return g_strconcat (ges_renderer_get_data_uri (), rel_path, NULL);
 }
 
-gint
-ges_asset_get_structure_int (GESUriClipAsset * asset, const char *name)
-{
-  GstDiscovererInfo *info = ges_uri_clip_asset_get_info (asset);
-  GstDiscovererStreamInfo *stream_info =
-      gst_discoverer_info_get_stream_info (info);
-  GstCaps *caps = gst_discoverer_stream_info_get_caps (stream_info);
-  GstStructure *structure = gst_caps_get_structure (caps, 0);
-  gint value;
-  gst_structure_get_int (structure, name, &value);
-  return value;
-}
-
-gint
-ges_asset_get_width (GESUriClipAsset * asset)
-{
-  return ges_asset_get_structure_int (asset, "width");
-}
-
-gint
-ges_asset_get_height (GESUriClipAsset * asset)
-{
-  return ges_asset_get_structure_int (asset, "height");
-}
-
 GESClip *
 ges_clip_unknown_from_rel_path (const gchar * path, GESLayer * layer,
     gint start, gint in, gint dur)
