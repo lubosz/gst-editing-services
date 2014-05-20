@@ -37,7 +37,9 @@ ges_renderer_get_data_uri (void)
 {
   gchar *data_path;
   gchar directory[1024];
-  getcwd (directory, 1024);
+  if (!getcwd (directory, 1024)) {
+    g_print ("Current directory could not be read.\n");
+  }
 #ifdef PLATTFORM_WINDOWS
   char *replaced = replace (directory, '\\', '/');
   data_path = g_strconcat ("file:///", replaced, "/data/", NULL);
@@ -53,7 +55,9 @@ ges_renderer_get_absolute_path_win_multifile (const char *rel_path)
   gchar *data_path;
   char *replaced;
   gchar directory[1024];
-  getcwd (directory, 1024);
+  if (!getcwd (directory, 1024)) {
+    g_print ("Current directory could not be read.\n");
+  }
   replaced = replace (directory, '\\', '/');
   data_path = g_strconcat ("file://", replaced, "/data/", NULL);
 
