@@ -68,7 +68,6 @@ libges_@GST_API_VERSION@_la_SOURCES = 		\
 	ges-utils.c \
 	ges-group.c \
 	gstframepositionner.c \
-	ges-json.c \
 	ges-renderer.c
 
 libges_@GST_API_VERSION@includedir = $(includedir)/gstreamer-@GST_API_VERSION@/ges/
@@ -134,7 +133,6 @@ libges_@GST_API_VERSION@include_HEADERS = 	\
 	ges-utils.h \
 	ges-group.h \
 	ges-version.h \
-	ges-json.h \
 	ges-renderer.h
 
 noinst_HEADERS = \
@@ -144,10 +142,10 @@ noinst_HEADERS = \
 
 libges_@GST_API_VERSION@_la_CFLAGS = -I$(top_srcdir) $(GST_PBUTILS_CFLAGS) \
 		$(GST_VIDEO_CFLAGS) $(GST_CONTROLLER_CFLAGS) $(GST_PLUGINS_BASE_CFLAGS) \
-		$(GST_CFLAGS) $(XML_CFLAGS) $(GIO_CFLAGS) $(JSON_GLIB_CFLAGS)
+		$(GST_CFLAGS) $(XML_CFLAGS) $(GIO_CFLAGS)
 libges_@GST_API_VERSION@_la_LIBADD = $(GST_PBUTILS_LIBS) \
 		$(GST_VIDEO_LIBS) $(GST_CONTROLLER_LIBS) $(GST_PLUGINS_BASE_LIBS) \
-		$(GST_BASE_LIBS) $(GST_LIBS) $(XML_LIBS) $(GIO_LIBS) $(JSON_GLIB_LIBS)
+		$(GST_BASE_LIBS) $(GST_LIBS) $(XML_LIBS) $(GIO_LIBS)
 libges_@GST_API_VERSION@_la_LDFLAGS = $(GST_LIB_LDFLAGS) $(GST_ALL_LDFLAGS) \
 		$(GST_LT_LDFLAGS) $(GIO_CFLAGS)
 
@@ -187,19 +185,16 @@ GES-@GST_API_VERSION@.gir: $(INTROSPECTION_SCANNER) libges-@GST_API_VERSION@.la
 		--add-include-path=`$(PKG_CONFIG) --variable=girdir gstreamer-tag-@GST_API_VERSION@` \
 		--add-include-path=`$(PKG_CONFIG) --variable=girdir gstreamer-base-@GST_API_VERSION@` \
 		--add-include-path=`$(PKG_CONFIG) --variable=girdir gio-2.0` \
-		--add-include-path=`$(PKG_CONFIG) --variable=girdir json-glib-1.0` \
 		--library=libges-@GST_API_VERSION@.la \
 		--include=Gst-@GST_API_VERSION@ \
 		--include=GstVideo-@GST_API_VERSION@ \
 		--include=GstPbutils-@GST_API_VERSION@ \
 		--include=Gio-2.0 \
-		--include=Json-1.0 \
 		--libtool="$(top_builddir)/libtool" \
 		--pkg gstreamer-@GST_API_VERSION@ \
 		--pkg gstreamer-pbutils-@GST_API_VERSION@ \
 		--pkg gstreamer-controller-@GST_API_VERSION@ \
 		--pkg gio-2.0 \
-		--pkg json-glib-1.0 \
 		--pkg-export ges-@GST_API_VERSION@ \
 		--add-init-section="gst_init(NULL, NULL);" \
 		--add-init-section="ges_init(NULL, NULL);" \
@@ -230,7 +225,6 @@ typelibs_DATA = $(BUILT_GIRSOURCES:.gir=.typelib)
 		--includedir=`$(PKG_CONFIG) --variable=girdir gstreamer-base-@GST_API_VERSION@` \
 		--includedir=`$(PKG_CONFIG) --variable=girdir gstreamer-controller-@GST_API_VERSION@` \
 		--includedir=`$(PKG_CONFIG) --variable=girdir gio-2.0` \
-		--includedir=`$(PKG_CONFIG) --variable=girdir json-glib-1.0` \
 		$(INTROSPECTION_COMPILER_OPTS) $< -o $(@F)
 
 CLEANFILES += $(BUILT_GIRSOURCES) $(typelibs_DATA)

@@ -8,7 +8,7 @@
 #include <string.h>
 
 #include "ges-json.h"
-#include "ges-renderer.h"
+#include <ges/ges-renderer.h>
 
 const gchar *
 getString (JsonReader * reader, const gchar * member_name)

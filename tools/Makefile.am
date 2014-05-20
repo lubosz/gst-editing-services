@@ -1,11 +1,13 @@
-bin_PROGRAMS = ges-launch-@GST_API_VERSION@
+bin_PROGRAMS = ges-launch-@GST_API_VERSION@ ges-json-@GST_API_VERSION@
 
-AM_CFLAGS =  -I$(top_srcdir) $(GST_PBUTILS_CFLAGS) $(GST_CFLAGS) $(GIO_CFLAGS) $(GST_VALIDATE_CFLAGS)
-LDADD = $(top_builddir)/ges/libges-@GST_API_VERSION@.la $(GST_PBUTILS_LIBS) $(GST_LIBS) $(GIO_LIBS) $(GST_VALIDATE_LIBS)
+AM_CFLAGS =  -I$(top_srcdir) $(GST_PBUTILS_CFLAGS) $(GST_CFLAGS) $(GIO_CFLAGS) $(GST_VALIDATE_CFLAGS) $(JSON_GLIB_CFLAGS)
+LDADD = $(top_builddir)/ges/libges-@GST_API_VERSION@.la $(GST_PBUTILS_LIBS) $(GST_LIBS) $(GIO_LIBS) $(GST_VALIDATE_LIBS) $(JSON_GLIB_LIBS)
 
 noinst_HEADERS = ges-validate.h
 
 ges_launch_@GST_API_VERSION@_SOURCES = ges-validate.c ges-launch.c
+
+ges_json_@GST_API_VERSION@_SOURCES = ges-json.c
 
 Android.mk: Makefile.am $(BUILT_SOURCES)
 	androgenizer \
