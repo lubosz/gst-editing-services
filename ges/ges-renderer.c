@@ -216,7 +216,9 @@ GstCaps *
 gst_caps_from_renderer_profile (GESRendererProfile * profile)
 {
   GstCaps *caps;
-  char capsstring[50];
+  gchar capsstring[50];
+  gchar *capsstring_format;
+
   sprintf (capsstring,
       "video/x-raw,width=%d,height=%d,framerate=%d/1",
       profile->width, profile->height, profile->fps);
@@ -224,12 +226,11 @@ gst_caps_from_renderer_profile (GESRendererProfile * profile)
   caps = gst_caps_from_string (capsstring);
 
   if (profile->format != NULL) {
-    gchar *capsstring_format =
+    capsstring_format =
         g_strconcat (capsstring, ",format=", profile->format, NULL);
     caps = gst_caps_from_string (capsstring_format);
     g_print ("format caps %s\n", capsstring_format);
   }
-
 
   return caps;
 }

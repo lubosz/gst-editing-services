@@ -244,6 +244,7 @@ render_json (const char *filename)
   res.height = height;
   res.fps = fps;
   res.profile = PROFILE_AAC_H264_QUICKTIME;
+  res.format = NULL;
 
   transparency = TRUE;
 
@@ -260,7 +261,6 @@ render_json (const char *filename)
   g_print ("Resolution: %dx%d, FPS: %d\n", width, height, fps);
 
   timeline = ges_timeline_new_audio_video ();
-
 
   json_reader_read_member (reader, "layers");
 
