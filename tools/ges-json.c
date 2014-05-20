@@ -211,6 +211,8 @@ render_json (const char *filename)
 
   GESRendererProfile res;
 
+  gchar directory[1024];
+
   parser = json_parser_new ();
 
   error = NULL;
@@ -286,7 +288,18 @@ render_json (const char *filename)
 
   ges_timeline_commit (timeline);
 
-  xges_path = g_strconcat ("file://", filename, ".xges", NULL);
+  //check for relative path
+  if (strncmp ("/", filename, 1) != 0) {
+    if (!getcwd (directory, 1024)) {
+      g_print ("Current directory could not be read.\n");
+    }
+  } else {
+    strcpy (directory, "");
+  }
+
+  xges_path = g_strconcat ("file://", directory, "/", filename, ".xges", NULL);
+
+  g_print ("path %s\n", xges_path);
 
   ges_timeline_save_xges (timeline, xges_path);
 
