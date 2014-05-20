@@ -254,6 +254,14 @@ fi
 AC_SUBST(XML_LIBS)
 AC_SUBST(XML_CFLAGS)
 
+dnl we need json-glib for json support
+PKG_CHECK_MODULES(JSON_GLIB, json-glib-1.0, HAVE_JSON_GLIB="yes", HAVE_JSON_GLIB="no")
+if test "x$HAVE_JSON_GLIB" != "xyes"; then
+  AC_MSG_ERROR([json-glib is required])
+fi
+AC_SUBST(JSON_GLIB_LIBS)
+AC_SUBST(JSON_GLIB_CFLAGS)
+
 dnl GTK is optional and only used in examples
 HAVE_GTK=no
 HAVE_GTK_X11=no
