@@ -217,7 +217,7 @@ AC_MSG_NOTICE(Using GStreamer Base Plugins in $GSTPB_PLUGINS_DIR)
 dnl check for gstreamer-pbutils
 PKG_CHECK_MODULES(GST_PBUTILS, gstreamer-pbutils-$GST_API_VERSION, HAVE_GST_PBUTILS="yes", HAVE_GST_PBUTILS="no")
 if test "x$HAVE_GST_PBUTILS" != "xyes"; then
-  AC_ERROR([gst-pbutils is required for rendering support])
+  AC_MSG_ERROR([gst-pbutils is required for rendering support])
 fi
 AC_SUBST(GST_PBUTILS_LIBS)
 AC_SUBST(GST_PBUTILS_CFLAGS)
@@ -225,7 +225,7 @@ AC_SUBST(GST_PBUTILS_CFLAGS)
 dnl check for gst-controller
 PKG_CHECK_MODULES(GST_CONTROLLER, gstreamer-controller-$GST_API_VERSION, HAVE_GST_CONTROLLER="yes", HAVE_GST_CONROLLER="no")
 if test "x$HAVE_GST_CONTROLLER" != "xyes"; then
-  AC_ERROR([gst-controller is required for transition support])
+  AC_MSG_ERROR([gst-controller is required for transition support])
 fi
 AC_SUBST(GST_CONTROLLER_LIBS)
 AC_SUBST(GST_CONTROLLER_CFLAGS)
@@ -233,7 +233,7 @@ AC_SUBST(GST_CONTROLLER_CFLAGS)
 dnl check for gstvideo
 PKG_CHECK_MODULES(GST_VIDEO, gstreamer-video-$GST_API_VERSION, HAVE_GST_VIDEO="yes", HAVE_GST_CONROLLER="no")
 if test "x$HAVE_GST_VIDEO" != "xyes"; then
-  AC_ERROR([gst-video is required for transition support])
+  AC_MSG_ERROR([gst-video is required for transition support])
 fi
 AC_SUBST(GST_VIDEO_LIBS)
 AC_SUBST(GST_VIDEO_CFLAGS)
