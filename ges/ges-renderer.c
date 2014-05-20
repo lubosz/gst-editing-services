@@ -51,9 +51,10 @@ gchar *
 ges_renderer_get_absolute_path_win_multifile (const char *rel_path)
 {
   gchar *data_path;
+  char *replaced;
   gchar directory[1024];
   getcwd (directory, 1024);
-  char *replaced = replace (directory, '\\', '/');
+  replaced = replace (directory, '\\', '/');
   data_path = g_strconcat ("file://", replaced, "/data/", NULL);
 
   return g_strconcat (data_path, rel_path, NULL);
@@ -103,6 +104,7 @@ ges_multi_clip_from_path (const gchar * rel_path, GESLayer * layer,
     gint start, gint in, gint dur, gboolean absolute_paths)
 {
   const gchar *path = NULL;
+  gchar *multi_path;
 
   if (absolute_paths) {
     path = rel_path;
@@ -114,7 +116,7 @@ ges_multi_clip_from_path (const gchar * rel_path, GESLayer * layer,
 #endif
   }
 
-  gchar *multi_path = g_strconcat ("multi", path, NULL);
+  multi_path = g_strconcat ("multi", path, NULL);
 
   return ges_clip_from_path (multi_path, layer, start, in, dur,
       GES_TRACK_TYPE_VIDEO);
@@ -173,12 +175,13 @@ ges_clip_from_path (const gchar * path, GESLayer * layer, gint start, gint in,
 void
 bus_message_cb (GstBus * bus, GstMessage * message, GMainLoop * mainloop)
 {
+  GError *err = NULL;
+  gchar *dbg_info = NULL;
+
   switch (GST_MESSAGE_TYPE (message)) {
     case GST_MESSAGE_ERROR:{
       //TODO: Log error message to file
       wasError = TRUE;
-      GError *err = NULL;
-      gchar *dbg_info = NULL;
 
       gst_message_parse_error (message, &err, &dbg_info);
       g_printerr ("\n\nERROR from element %s: %s\n",
@@ -277,16 +280,19 @@ gboolean
 ges_renderer_print_progress (void)
 {
   gint64 position = 0;
+  float percent;
+  float positionSec;
+  float durationSec;
 
   gst_element_query_position (GST_ELEMENT (pipeline),
       GST_FORMAT_TIME, &position);
 
-  float percent = (float) position * 100 / (float) duration;
+  percent = (float) position *100 / (float) duration;
 
   //TODO: error when pos > dur
 
-  float positionSec = (float) position / GST_SECOND;
-  float durationSec = (float) duration / GST_SECOND;
+  positionSec = (float) position / GST_SECOND;
+  durationSec = (float) duration / GST_SECOND;
 
   if (position > 0)
     g_print ("\r%.2f%% %.2f/%.2fs", percent, positionSec, durationSec);
@@ -299,6 +305,7 @@ ges_pipeline_setup_rendering (GESPipeline * pipeline,
     const gchar * name, GESRendererProfile * profile, gboolean absolute_paths)
 {
   EncodingProfile type = profile->profile;
+  GstEncodingProfile *gst_profile;
 
   const gchar *fileName;
 
@@ -311,8 +318,7 @@ ges_pipeline_setup_rendering (GESPipeline * pipeline,
   }
   g_print ("Rendering %s\n", fileName);
 
-  GstEncodingProfile *gst_profile =
-      ges_renderer_profile_get_encoding_profile (profile);
+  gst_profile = ges_renderer_profile_get_encoding_profile (profile);
   ges_pipeline_set_render_settings (pipeline, fileName, gst_profile);
   ges_pipeline_set_mode (pipeline, GES_PIPELINE_MODE_RENDER);
 }
@@ -344,8 +350,8 @@ void
 ges_renderer_run_job (GESTimeline * timeline, const gchar * name,
     GESRendererProfile * profile, gboolean absolute_paths)
 {
-  GMainLoop *mainloop;
-  mainloop = g_main_loop_new (NULL, FALSE);
+  GstBus *bus;
+  GMainLoop *mainloop = g_main_loop_new (NULL, FALSE);
 
   //set restriction caps
   GList *tracks = ges_timeline_get_tracks (timeline);
@@ -368,7 +374,6 @@ ges_renderer_run_job (GESTimeline * timeline, const gchar * name,
     g_timeout_add_seconds (duration, (GSourceFunc) g_main_loop_quit, mainloop);
   }
 
-  GstBus *bus;
   bus = gst_pipeline_get_bus (GST_PIPELINE (pipeline));
   g_signal_connect (bus, "message", (GCallback) bus_message_cb, mainloop);
   g_timeout_add (100, (GSourceFunc) ges_renderer_print_progress, NULL);
@@ -400,16 +405,17 @@ void
 ges_renderer_render (GESTimeline * timeline, const gchar * name,
     GESRendererProfile * profile, gboolean absolute_paths)
 {
-  g_print ("\n====\n");
-  float now = (float) g_get_monotonic_time () / (float) GST_MSECOND;
-
-  ges_renderer_run_job (timeline, name, profile, absolute_paths);
-
-  float then = (float) g_get_monotonic_time () / (float) GST_MSECOND;
-  float dur = then - now;
-  g_print ("\n====\n");
-
   const gchar *exitStatus = "Rendering";
+  float now = (float) g_get_monotonic_time () / (float) GST_MSECOND;
+  float then;
+  float dur;
+
+  g_print ("\n====\n");
+  ges_renderer_run_job (timeline, name, profile, absolute_paths);
+  then = (float) g_get_monotonic_time () / (float) GST_MSECOND;
+  dur = then - now;
+  g_print ("\n====\n");
+
   if (wasError)
     exitStatus = "Error";
 

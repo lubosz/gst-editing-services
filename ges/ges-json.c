@@ -13,8 +13,9 @@
 const gchar *
 getString (JsonReader * reader, const gchar * member_name)
 {
+  const char *value;
   json_reader_read_member (reader, member_name);
-  const char *value = json_reader_get_string_value (reader);
+  value = json_reader_get_string_value (reader);
   json_reader_end_member (reader);
   return value;
 }
@@ -22,8 +23,9 @@ getString (JsonReader * reader, const gchar * member_name)
 const gdouble
 getDouble (JsonReader * reader, const gchar * member_name)
 {
+  double value;
   json_reader_read_member (reader, member_name);
-  double value = json_reader_get_double_value (reader);
+  value = json_reader_get_double_value (reader);
   json_reader_end_member (reader);
   return value;
 }
@@ -31,8 +33,9 @@ getDouble (JsonReader * reader, const gchar * member_name)
 const int
 getInt (JsonReader * reader, const gchar * member_name)
 {
+  int value;
   json_reader_read_member (reader, member_name);
-  int value = json_reader_get_int_value (reader);
+  value = json_reader_get_int_value (reader);
   json_reader_end_member (reader);
   return value;
 }
@@ -40,8 +43,9 @@ getInt (JsonReader * reader, const gchar * member_name)
 const gboolean
 getBool (JsonReader * reader, const gchar * member_name)
 {
+  gboolean value;
   json_reader_read_member (reader, member_name);
-  gboolean value = json_reader_get_boolean_value (reader);
+  value = json_reader_get_boolean_value (reader);
   json_reader_end_member (reader);
   return value;
 }
@@ -51,19 +55,33 @@ getClips (JsonReader * reader, GESLayer * layer, GESTrackType type,
     gboolean absolute_paths)
 {
   int i;
+  const char *src;
+
+  int start;
+  int in;
+  int dur;
+
+  GESClip *clip;
+
+  GESTimeline *tl;
+  GList *tracks;
+  GESTrack *trackv;
+  GESTrack *tracka;
+
+  GESTrackElement *videoElement;
+  GESEffect *effect;
+
   json_reader_read_member (reader, "clips");
 
   g_print ("= clips =\n");
 
   for (i = 0; i < json_reader_count_elements (reader); i++) {
     json_reader_read_element (reader, i);
-    const char *src = getString (reader, "src");
-    int start = getInt (reader, "start");
-    int in = getInt (reader, "in");
-    int dur = getInt (reader, "dur");
+    src = getString (reader, "src");
+    start = getInt (reader, "start");
+    in = getInt (reader, "in");
+    dur = getInt (reader, "dur");
     g_print ("Clip: %s (start: %d, in: %d, dur: %d)\n", src, start, in, dur);
-
-    GESClip *clip;
 
     if (is_in_members (reader, "multi") && getBool (reader, "multi")) {
       g_print ("multi on.\n");
@@ -79,10 +97,10 @@ getClips (JsonReader * reader, GESLayer * layer, GESTrackType type,
       clip = ges_clip_from_path (path, layer, start, in, dur, type);
     }
 
-    GESTimeline *tl = ges_layer_get_timeline (layer);
-    GList *tracks = ges_timeline_get_tracks (tl);
-    GESTrack *trackv = g_list_first (tracks)->data;
-    GESTrack *tracka = g_list_last (tracks)->data;
+    tl = ges_layer_get_timeline (layer);
+    tracks = ges_timeline_get_tracks (tl);
+    trackv = g_list_first (tracks)->data;
+    tracka = g_list_last (tracks)->data;
 
     if (is_in_members (reader, "volume")) {
       double volume = getDouble (reader, "volume");
@@ -94,8 +112,7 @@ getClips (JsonReader * reader, GESLayer * layer, GESTrackType type,
       }
     }
 
-    GESTrackElement *videoElement =
-        ges_clip_find_track_element (clip, trackv, G_TYPE_NONE);
+    videoElement = ges_clip_find_track_element (clip, trackv, G_TYPE_NONE);
 
     if (videoElement != NULL) {
       if (is_in_members (reader, "x")) {
@@ -134,7 +151,7 @@ getClips (JsonReader * reader, GESLayer * layer, GESTrackType type,
         const char *effect_str = getString (reader, "effect");
         if (strcmp (effect_str, "") != 0) {
           g_print ("Using effect %s", effect_str);
-          GESEffect *effect = ges_effect_new (effect_str);
+          effect = ges_effect_new (effect_str);
           ges_container_add (GES_CONTAINER (clip),
               GES_TIMELINE_ELEMENT (effect));
         }
@@ -151,8 +168,9 @@ is_in_members (JsonReader * reader, const char *member)
 {
   gchar **members = json_reader_list_members (reader);
   int member_size = json_reader_count_members (reader);
+  int i;
 
-  for (int i = 0; i < member_size; i++) {
+  for (i = 0; i < member_size; i++) {
     if (strcmp (members[i], member) == 0) {
       //g_print("found member: %s = %s\n", members[i], member);
       return TRUE;
@@ -168,6 +186,31 @@ render_json (const char *filename)
   JsonParser *parser;
   JsonNode *root;
   GError *error;
+
+  JsonReader *reader;
+  const char *name;
+
+  gboolean absolute_paths;
+
+  int i;
+
+  GESLayer *layer;
+
+  const gchar *xges_path;
+
+  const char *format;
+  EncodingProfile prof;
+
+  GESTimeline *timeline;
+
+  int width;
+  int height;
+  int fps;
+
+  gboolean transparency;
+
+  GESRendererProfile res;
+
   parser = json_parser_new ();
 
   error = NULL;
@@ -181,28 +224,32 @@ render_json (const char *filename)
 
   root = json_parser_get_root (parser);
 
-  JsonReader *reader = json_reader_new (root);
-  GESTimeline *timeline;
+  reader = json_reader_new (root);
 
   json_reader_read_member (reader, "composition");
 
   // comp strings
-  const char *name = getString (reader, "name");
+  name = getString (reader, "name");
   //const char *src_dir = getString (reader, "src-dir");
   //g_print ("Source Directory: %s\nName: %s\n", src_dir, name);
 
   // comp ints
-  int width = getInt (reader, "width");
-  int height = getInt (reader, "height");
-  int fps = getInt (reader, "fps");
+  width = getInt (reader, "width");
+  height = getInt (reader, "height");
+  fps = getInt (reader, "fps");
 
-  gboolean transparency = TRUE;
+  res.width = width;
+  res.height = height;
+  res.fps = fps;
+  res.profile = PROFILE_AAC_H264_QUICKTIME;
+
+  transparency = TRUE;
 
   if (is_in_members (reader, "transparency")) {
     transparency = getBool (reader, "transparency");
   }
 
-  gboolean absolute_paths = FALSE;
+  absolute_paths = FALSE;
 
   if (is_in_members (reader, "absolute_paths")) {
     absolute_paths = getBool (reader, "absolute_paths");
@@ -212,13 +259,13 @@ render_json (const char *filename)
 
   timeline = ges_timeline_new_audio_video ();
 
-  int i;
+
   json_reader_read_member (reader, "layers");
 
   for (i = 0; i < json_reader_count_elements (reader); i++) {
     json_reader_read_element (reader, i);
 
-    GESLayer *layer = ges_layer_new ();
+    layer = ges_layer_new ();
 
     g_object_set (layer, "priority", i, NULL);
 
@@ -239,15 +286,14 @@ render_json (const char *filename)
 
   ges_timeline_commit (timeline);
 
-  const gchar *xges_path = g_strconcat ("file://", filename, ".xges", NULL);
+  xges_path = g_strconcat ("file://", filename, ".xges", NULL);
 
   ges_timeline_save_xges (timeline, xges_path);
 
   //free(xges_path);
 
   // formats
-  GESRendererProfile res =
-      { width, height, fps, PROFILE_AAC_H264_QUICKTIME, NULL };
+
   if (!transparency) {
     g_print ("Deactivating transparency\n");
     res.format = "I420";
@@ -256,10 +302,10 @@ render_json (const char *filename)
   json_reader_read_member (reader, "formats");
   for (i = 0; i < json_reader_count_elements (reader); i++) {
     json_reader_read_element (reader, i);
-    const char *format = json_reader_get_string_value (reader);
+    format = json_reader_get_string_value (reader);
     json_reader_end_element (reader);
     g_print ("format: %s\n", format);
-    EncodingProfile prof = PROFILE_AAC_H264_QUICKTIME;
+    prof = PROFILE_AAC_H264_QUICKTIME;
     if (strcmp (format, "webm") == 0) {
       prof = PROFILE_VORBIS_VP8_WEBM;
     } else if (strcmp (format, "mkv") == 0) {
@@ -283,9 +329,6 @@ render_json (const char *filename)
 int
 main (int argc, char *argv[])
 {
-#ifdef PLATTFORM_WINDOWS
-  LoadLibrary ("exchndl.dll");
-#endif
   if (argc < 2) {
     g_print ("Usage: ./ges-json <filename.json>\n");
     return EXIT_FAILURE;
