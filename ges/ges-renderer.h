@@ -83,10 +83,6 @@ GstCaps *gst_caps_from_renderer_profile (GESRendererProfile * profile);
 
 GESTimeline * ges_timeline_new_video(void);
 
-gint ges_asset_get_structure_int (GESUriClipAsset * asset, const char *name);
-gint ges_asset_get_width (GESUriClipAsset * asset);
-gint ges_asset_get_height (GESUriClipAsset * asset);
-
 void ges_renderer_init (void);
 
 #endif // GES_RENDERER_H
