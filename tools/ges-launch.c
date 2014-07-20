@@ -747,6 +747,7 @@ main (int argc, gchar ** argv)
   gchar *load_path = NULL;
   gchar *videosink = NULL, *audiosink = NULL;
   const gchar *scenario = NULL;
+  gchar *encoding_profile = NULL;
 
   GOptionEntry options[] = {
     {"thumbnail", 'm', 0.0, G_OPTION_ARG_DOUBLE, &thumbinterval,
@@ -764,6 +765,8 @@ main (int argc, gchar ** argv)
           "The presence property of the profile can be specified with |<presence>, eg:\n"
           "video/webm:video/x-vp8|<presence>:audio/x-vorbis\n",
         "properties-values"},
+    {"encoding-profile", 'e', 0, G_OPTION_ARG_STRING, &encoding_profile,
+        "Use a specific encoding profile from XML", "<profile-name>"},
     {"repeat", 'r', 0, G_OPTION_ARG_INT, &repeat,
         "Number of time to repeat timeline", NULL},
     {"list-transitions", 't', 0, G_OPTION_ARG_NONE, &list_transitions,
@@ -895,7 +898,14 @@ main (int argc, gchar ** argv)
           GES_PROJECT (ges_extractable_get_asset (GES_EXTRACTABLE (timeline)));
       const GList *profiles = ges_project_list_encoding_profiles (proj);
 
-      prof = profiles ? profiles->data : NULL;
+      if (profiles) {
+        prof = profiles->data;
+        if (encoding_profile)
+          for (; profiles; profiles = profiles->next)
+            if (strcmp (encoding_profile,
+                    gst_encoding_profile_get_name (profiles->data)) == 0)
+              prof = profiles->data;
+      }
     }
 
     if (!prof) {
