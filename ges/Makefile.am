@@ -168,6 +168,7 @@ gir_cincludes+=$(patsubst %,--c-include='ges/%',$(nodist_libges_@GST_API_VERSION
 
 GES-@GST_API_VERSION@.gir: $(INTROSPECTION_SCANNER) libges-@GST_API_VERSION@.la
 	$(AM_V_GEN)PKG_CONFIG_PATH="$(GST_PKG_CONFIG_PATH)" \
+		CC="$(CC)" \
 		$(INTROSPECTION_SCANNER) -v --namespace GES \
 		--nsversion=@GST_API_VERSION@ \
 		--identifier-prefix=GES \
