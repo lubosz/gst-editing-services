@@ -177,6 +177,7 @@ GES-@GST_API_VERSION@.gir: $(INTROSPECTION_SCANNER) libges-@GST_API_VERSION@.la
 		$(gir_cincludes) \
 		-I$(top_srcdir) \
 		-I$(top_builddir) \
+		$(GST_BASE_CFLAGS) \
 		--add-include-path=`$(PKG_CONFIG) --variable=girdir gstreamer-@GST_API_VERSION@` \
 		--add-include-path=`$(PKG_CONFIG) --variable=girdir gstreamer-pbutils-@GST_API_VERSION@` \
 		--add-include-path=`$(PKG_CONFIG) --variable=girdir gstreamer-audio-@GST_API_VERSION@` \
