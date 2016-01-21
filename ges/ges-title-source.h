@@ -106,6 +106,11 @@ const guint32 ges_title_source_get_background_color (GESTitleSource *source);
 const gdouble ges_title_source_get_xpos (GESTitleSource *source);
 const gdouble ges_title_source_get_ypos (GESTitleSource *source);
 
+const gint ges_title_source_get_text_x (GESTitleSource *source);
+const gint ges_title_source_get_text_y (GESTitleSource *source);
+const guint ges_title_source_get_text_width (GESTitleSource *source);
+const guint ges_title_source_get_text_height (GESTitleSource *source);
+
 G_END_DECLS
 
 #endif /* _GES_TITLE_SOURCE */

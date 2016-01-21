@@ -588,6 +588,44 @@ ges_title_source_get_ypos (GESTitleSource * source)
   return ypos;
 }
 
+
+const gint
+ges_title_source_get_text_x (GESTitleSource * source)
+{
+  gint x;
+  if (source->priv->text_el)
+    g_object_get (source->priv->text_el, "text-x", &x, NULL);
+  return x;
+}
+
+const gint
+ges_title_source_get_text_y (GESTitleSource * source)
+{
+  gint y;
+  if (source->priv->text_el)
+    g_object_get (source->priv->text_el, "text-y", &y, NULL);
+  return y;
+}
+
+const guint
+ges_title_source_get_text_width (GESTitleSource * source)
+{
+  guint w;
+  if (source->priv->text_el)
+    g_object_get (source->priv->text_el, "text-width", &w, NULL);
+  return w;
+}
+
+const guint
+ges_title_source_get_text_height (GESTitleSource * source)
+{
+  guint h;
+  if (source->priv->text_el)
+    g_object_get (source->priv->text_el, "text-height", &h, NULL);
+  return h;
+}
+
+
 /**
  * ges_title_source_new:
  *
