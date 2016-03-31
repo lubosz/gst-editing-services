@@ -163,12 +163,11 @@ ges_video_source_create_element (GESTrackElement * trksrc)
             "deinterlace"), ("deinterlacing won't work"));
     topbin =
         ges_source_create_topbin ("videosrcbin", sub_element, queue,
-        videoconvert, positionner, videoscale, videorate, capsfilter, NULL);
+        videoconvert, positionner, videoscale, videorate, NULL);
   } else {
     topbin =
         ges_source_create_topbin ("videosrcbin", sub_element, queue,
-        videoconvert, deinterlace, positionner, videoscale, videorate,
-        capsfilter, NULL);
+        videoconvert, deinterlace, positionner, videoscale, videorate, NULL);
   }
 
   self->priv->positionner = GST_FRAME_POSITIONNER (positionner);
